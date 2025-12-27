@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String    // e.g., "Simran", "Harpreet"
+  email         String    @unique
+  role          String    @default("PROJECT_OWNER")
+  // Supabase ID handling (Keep for Auth)
+  supabaseId    String?   @unique 
+
+  projects      Project[] @relation("AssignedUser")
+  ownedProjects Project[] @relation("ProjectOwner")
+  // history       ProjectHistory[] // OMITTED: Impossible relation (ProjectHistory has no User FK)
+}
+
+model Project {
+  id             String    @id @default(cuid())
+  projectId      String    @unique        // Display as "ProjID"
+  name           String    // Display as "Project Name"
+  houseType      String    // "Single" or "Double" (Enforce in Zod, not Enum, for flexibility)
+  stage          String    // Must match StageConfig
+  
+  // Relations
+  assignedToId   String?
+  assignedTo     User?     @relation("AssignedUser", fields: [assignedToId], references: [id])
+  createdById    String
+  createdBy      User      @relation("ProjectOwner", fields: [createdById], references: [id])
+
+  // Status & Dates
+  status         String    @default("On Track") // e.g., "Client Delay", "Completed", "Past Target"
+  startDate      DateTime
+  targetFinish   DateTime
+  actualFinish   DateTime?
+  percentComplete Int      @default(0)
+
+  // SLA & Smart Delay Protocol
+  isDelayed      Boolean   @default(false)
+  delayReason    String?   // Mandatory if isDelayed is true
+  originalTarget DateTime  @default(now()) // Baseline for delay calculation
+  delayDays      Int       @default(0)
+
+  // V2 Location Support (Restored)
+  latitude        Float?
+  longitude       Float?
+  
+  // Extra columns from Excel
+  notes          String?   // Display as "Notes"
+
+  updatedAt      DateTime  @updatedAt
+  history        ProjectHistory[]
+
+  // Keep for file compatibility if needed, though not in spec V2.
+  documents      Document[]
+  photos         SitePhoto[]
+}
+
+model StageConfig {
+  id         String @id @default(cuid())
+  houseType  String // "Single" or "Double"
+  stageName  String
+  percent    Int
+  @@unique([houseType, stageName])
+}
+
+model ProjectHistory {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  changedBy   String
+  fieldName   String
+  oldValue    String?
+  newValue    String?
+  createdAt   DateTime @default(now())
+}
+
+// Retained for functionality (File Uploads)
+model Document {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  type        String
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedAt  DateTime @default(now())
+}
+
+model SitePhoto {
+  id          String   @id @default(cuid())
+  url         String
+  stage       String
+  caption     String?
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  takenAt     DateTime @default(now())
+}
