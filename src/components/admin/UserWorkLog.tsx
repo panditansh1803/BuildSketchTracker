@@ -13,8 +13,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { getAllWorkLogs } from '@/app/actions/time-tracking'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Clock, Users, Calendar } from 'lucide-react'
+import { Clock, Users, Calendar, Download } from 'lucide-react'
+import { convertToCSV } from '@/lib/utils'
 
 interface WorkLog {
     id: string
@@ -59,6 +61,21 @@ export function UserWorkLog() {
         log.description?.toLowerCase().includes(filter.toLowerCase()) ||
         log.project?.name.toLowerCase().includes(filter.toLowerCase())
     )
+
+    const handleExport = () => {
+        const flatData = filteredLogs.map(log => ({
+            Employee: log.user.name,
+            Email: log.user.email,
+            Project: log.project ? log.project.name : 'General',
+            ProjectId: log.project ? log.project.projectId : '-',
+            Date: new Date(log.startTime).toLocaleDateString(),
+            StartTime: new Date(log.startTime).toLocaleTimeString(),
+            EndTime: log.endTime ? new Date(log.endTime).toLocaleTimeString() : 'Active',
+            DurationMinutes: log.duration || 0,
+            Description: log.description || ''
+        }))
+        convertToCSV(flatData, `work-logs-${new Date().toISOString().split('T')[0]}`)
+    }
 
     return (
         <div className="space-y-6">
@@ -105,10 +122,14 @@ export function UserWorkLog() {
                         <div className="flex items-center gap-2">
                             <Input
                                 placeholder="Filter users or projects..."
-                                className="w-[250px]"
+                                className="w-[200px]"
                                 value={filter}
                                 onChange={(e) => setFilter(e.target.value)}
                             />
+                            <Button onClick={handleExport} variant="outline" className="gap-2">
+                                <Download className="h-4 w-4" />
+                                Export CSV
+                            </Button>
                         </div>
                     </div>
                 </CardHeader>
