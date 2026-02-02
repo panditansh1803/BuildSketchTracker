@@ -19,6 +19,20 @@ model User {
   projects      Project[] @relation("AssignedUser")
   ownedProjects Project[] @relation("ProjectOwner")
   // history       ProjectHistory[] // OMITTED: Impossible relation (ProjectHistory has no User FK)
+  workLogs      WorkLog[]
+}
+
+model WorkLog {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id])
+  startTime   DateTime  @default(now())
+  endTime     DateTime?
+  duration    Int?      // Duration in minutes
+  description String?
+  createdAt   DateTime  @default(now())
 }
 
 model Project {
@@ -60,6 +74,7 @@ model Project {
   // Keep for file compatibility if needed, though not in spec V2.
   documents      Document[]
   photos         SitePhoto[]
+  workLogs       WorkLog[]
 }
 
 model StageConfig {

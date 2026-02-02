@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma'
 import { createClient } from '@/utils/supabase/server'
 
-export type UserRole = 'ADMIN' | 'PROJECT_OWNER' | 'CLIENT'
+export type UserRole = 'ADMIN' | 'PROJECT_OWNER' | 'CLIENT' | 'EMPLOYEE'
 
 export async function getCurrentUser() {
     const supabase = await createClient()

@@ -5,6 +5,8 @@ import { EmployeeCard } from '@/components/team/EmployeeCard'
 import { ActivityFeed } from '@/components/team/ActivityFeed'
 import { UserManagementPanel } from '@/components/team/UserManagementPanel'
 
+import { UserWorkLog } from '@/components/admin/UserWorkLog'
+
 export const dynamic = 'force-dynamic'
 
 export default async function TeamPage() {
@@ -47,6 +49,10 @@ export default async function TeamPage() {
                         {stats.map(employee => (
                             <EmployeeCard key={employee.id} stats={employee} />
                         ))}
+                    </div>
+
+                    <div className="pt-8">
+                        <UserWorkLog />
                     </div>
                 </div>
 
