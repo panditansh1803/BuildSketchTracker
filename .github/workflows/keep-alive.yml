@@ -1,0 +1,49 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Run every 6 hours to keep Supabase active
+    # Supabase free tier pauses after 7 days of inactivity
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger
+  
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Health Endpoint
+        id: health-check
+        run: |
+          echo "🏥 Pinging health endpoint to keep Supabase active..."
+          echo "Time: $(date -u)"
+          
+          # Replace with your Vercel deployment URL
+          HEALTH_URL="${{ secrets.VERCEL_URL || 'https://build-sketch-tracker.vercel.app' }}/api/health"
+          
+          echo "URL: $HEALTH_URL"
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" "$HEALTH_URL" || echo "CURL_FAILED")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Health check passed - Supabase is alive!"
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Health check failed with status $HTTP_CODE"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+      - name: Report Status
+        if: always()
+        run: |
+          if [ "${{ steps.health-check.outputs.status }}" = "success" ]; then
+            echo "🎉 Supabase keep-alive successful at $(date -u)"
+          else
+            echo "⚠️ Supabase keep-alive failed at $(date -u)"
+            echo "Please check: https://supabase.com/dashboard/projects"
+          fi
