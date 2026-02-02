@@ -152,7 +152,7 @@ export function TimeTracker() {
             <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2 border-green-200 bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/10 dark:text-green-400">
                     <PlayCircle className="h-4 w-4" />
-                    Clock In
+                    <span className="hidden sm:inline">Clock In</span>
                 </Button>
             </DialogTrigger>
             <DialogContent>

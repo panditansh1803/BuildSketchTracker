@@ -114,19 +114,19 @@ export function UserWorkLog() {
 
             <Card>
                 <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
                             <CardTitle>Detailed Time Logs</CardTitle>
                             <CardDescription>Recent work activity across the organization.</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             <Input
                                 placeholder="Filter users or projects..."
-                                className="w-[200px]"
+                                className="w-full sm:w-[250px]"
                                 value={filter}
                                 onChange={(e) => setFilter(e.target.value)}
                             />
-                            <Button onClick={handleExport} variant="outline" className="gap-2">
+                            <Button onClick={handleExport} variant="outline" className="gap-2 w-full sm:w-auto">
                                 <Download className="h-4 w-4" />
                                 Export CSV
                             </Button>
@@ -134,7 +134,7 @@ export function UserWorkLog() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-md border">
+                    <div className="rounded-md border overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -172,7 +172,7 @@ export function UserWorkLog() {
                                                 <span className="text-muted-foreground text-xs italic">General Task</span>
                                             )}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="whitespace-nowrap">
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-medium">
                                                     {new Date(log.startTime).toLocaleDateString()}
