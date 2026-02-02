@@ -1,11 +1,25 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 
+/**
+ * Auth Callback Handler
+ * 
+ * Handles two types of auth callbacks:
+ * 1. PKCE flow (code parameter) - when user opens link in SAME browser as signup
+ * 2. Token hash flow (hash fragment) - when user opens link in DIFFERENT browser
+ * 
+ * For cross-browser email confirmation, we redirect to a client-side handler
+ * that can access the hash fragment.
+ */
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
+    const { searchParams, origin, hash } = new URL(request.url)
     const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL. Default to dashboard.
     const next = searchParams.get('next') ?? '/dashboard'
+
+    // Check for error in URL (from Supabase)
+    const error = searchParams.get('error')
+    const errorDescription = searchParams.get('error_description')
+    const errorCode = searchParams.get('error_code')
 
     // Get forwarded host for production environment
     const forwardedHost = request.headers.get('x-forwarded-host')
@@ -18,17 +32,34 @@ export async function GET(request: Request) {
         return `${origin}${path}`
     }
 
-    if (!code) {
-        console.error('Auth Callback: No code provided')
+    // Handle errors passed in URL from Supabase
+    if (error) {
+        console.error('Auth Callback - Supabase Error:', error, errorCode, errorDescription)
+
+        let errorType = 'exchange_failed'
+        if (errorCode === 'otp_expired') {
+            errorType = 'link_expired'
+        } else if (error === 'access_denied') {
+            errorType = 'access_denied'
+        }
+
+        const message = encodeURIComponent(errorDescription || error)
         return NextResponse.redirect(
-            getRedirectUrl('/auth/auth-code-error?error=no_code&message=No+authorization+code+provided')
+            getRedirectUrl(`/auth/auth-code-error?error=${errorType}&message=${message}`)
         )
+    }
+
+    // If no code, redirect to client-side confirm page to handle hash fragment
+    // This handles the case where user opens email in different browser
+    if (!code) {
+        console.log('Auth Callback: No code, redirecting to client-side confirm')
+        // Redirect to a client-side page that can handle the hash fragment
+        return NextResponse.redirect(getRedirectUrl('/auth/confirm'))
     }
 
     try {
         const cookieStore = new Map<string, { value: string; options: CookieOptions }>()
 
-        // Create a temporary client to exchange the code
         const supabase = createServerClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -37,7 +68,6 @@ export async function GET(request: Request) {
                     getAll() {
                         const cookies = request.headers.get('cookie') || ''
                         if (!cookies) return []
-
                         return cookies.split(';').map(c => {
                             const [key, ...v] = c.split('=')
                             return { name: key.trim(), value: v.join('=') }
@@ -52,30 +82,30 @@ export async function GET(request: Request) {
             }
         )
 
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-        if (!error) {
-            // Success! Create response with redirect
+        if (!exchangeError) {
             const response = NextResponse.redirect(getRedirectUrl(next))
-
-            // Apply cookies to response
             cookieStore.forEach(({ value, options }, name) => {
                 response.cookies.set(name, value, options)
             })
-
-            console.log('Auth Callback: Successfully exchanged code, redirecting to', next)
+            console.log('Auth Callback: Success, redirecting to', next)
             return response
         }
 
-        // Handle Supabase-specific errors
-        console.error('Auth Exchange Error:', error.message, error.status)
+        // Handle PKCE error specifically
+        console.error('Auth Exchange Error:', exchangeError.message)
 
         let errorType = 'exchange_failed'
-        let errorMessage = encodeURIComponent(error.message)
+        let errorMessage = encodeURIComponent(exchangeError.message)
 
-        if (error.message?.includes('expired')) {
+        if (exchangeError.message?.includes('code verifier')) {
+            // PKCE error - user is on different browser
+            // Redirect to client-side confirm to try token-based auth
+            return NextResponse.redirect(getRedirectUrl('/auth/confirm?retry=true'))
+        } else if (exchangeError.message?.includes('expired')) {
             errorType = 'link_expired'
-        } else if (error.message?.includes('already')) {
+        } else if (exchangeError.message?.includes('already')) {
             errorType = 'already_used'
         }
 
@@ -84,15 +114,12 @@ export async function GET(request: Request) {
         )
 
     } catch (err: unknown) {
-        // Handle unexpected errors (network issues, Supabase paused, etc.)
         const errorMessage = err instanceof Error ? err.message : 'Unknown error'
         console.error('Auth Callback - Unexpected Error:', errorMessage)
 
-        // Check if this is a Supabase pause error
         const isPaused = errorMessage.includes('Tenant') ||
             errorMessage.includes('user not found') ||
-            errorMessage.includes('ECONNREFUSED') ||
-            errorMessage.includes('fetch failed')
+            errorMessage.includes('ECONNREFUSED')
 
         const errorType = isPaused ? 'database_paused' : 'server_error'
 
@@ -101,4 +128,3 @@ export async function GET(request: Request) {
         )
     }
 }
-
