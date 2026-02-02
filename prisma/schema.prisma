@@ -33,6 +33,10 @@ model WorkLog {
   duration    Int?      // Duration in minutes
   description String?
   createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([startTime])
 }
 
 model Project {
@@ -75,6 +79,10 @@ model Project {
   documents      Document[]
   photos         SitePhoto[]
   workLogs       WorkLog[]
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([createdById])
 }
 
 model StageConfig {
