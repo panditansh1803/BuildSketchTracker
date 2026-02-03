@@ -102,7 +102,7 @@ export async function GET(request: Request) {
             // PKCE error - user might be on different browser OR server couldn't access cookie.
             // Redirect to client-side confirm to let the client SDK try the exchange
             // (Client SDK might have access to the verifier in local storage/cookie if server missed it)
-            return NextResponse.redirect(getRedirectUrl(`/auth/confirm?code=${code}`))
+            return NextResponse.redirect(getRedirectUrl(`/auth/confirm?code=${code}&next=${next}`))
         } else if (exchangeError.message?.includes('expired')) {
             errorType = 'link_expired'
         } else if (exchangeError.message?.includes('already')) {

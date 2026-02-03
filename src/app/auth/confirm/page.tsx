@@ -72,12 +72,29 @@ export default function AuthConfirmPage() {
                 const urlParams = new URLSearchParams(window.location.search)
                 const code = urlParams.get('code')
 
+                const next = urlParams.get('next') || '/dashboard'
+
                 if (code) {
                     // Try to exchange the code (might fail if cross-browser)
                     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
                     if (exchangeError) {
                         console.error('Code exchange error:', exchangeError)
+
+                        // Handle common "code used" or "cross device" errors gracefully
+                        // 'code verifier' = cross device (missing cookie)
+                        // 'invalid flow' / 400 = usually expired or used
+                        const isCrossDeviceOrUsed =
+                            exchangeError.message.toLowerCase().includes('verifier') ||
+                            exchangeError.message.toLowerCase().includes('request') ||
+                            exchangeError.message.toLowerCase().includes('flow')
+
+                        if (isCrossDeviceOrUsed) {
+                            setErrorMessage('This link requires the same browser used for signup. If you are already verified, please login.')
+                            setStatus('error')
+                            return
+                        }
+
                         setErrorMessage(exchangeError.message)
                         setStatus('error')
                         return
@@ -85,7 +102,7 @@ export default function AuthConfirmPage() {
 
                     setStatus('success')
                     setTimeout(() => {
-                        router.push('/dashboard')
+                        router.push(next)
                         router.refresh()
                     }, 1500)
                     return
@@ -96,7 +113,7 @@ export default function AuthConfirmPage() {
                 if (user) {
                     setStatus('success')
                     setTimeout(() => {
-                        router.push('/dashboard')
+                        router.push(next)
                         router.refresh()
                     }, 1500)
                     return
