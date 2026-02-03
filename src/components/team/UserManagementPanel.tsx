@@ -69,10 +69,14 @@ export function UserManagementPanel({ initialUsers, currentUser }: UserManagemen
 
         setLoading(userId)
         try {
-            await removeUser(userId)
-            setUsers(users.filter(u => u.id !== userId))
-            router.refresh()
-            alert('User removed successfully.')
+            const res = await removeUser(userId)
+            if (res?.error) {
+                alert(res.error)
+            } else {
+                setUsers(users.filter(u => u.id !== userId))
+                router.refresh()
+                alert('User removed successfully.')
+            }
         } catch (error: any) {
             console.error(error)
             alert(error.message || 'Failed to remove user.')
