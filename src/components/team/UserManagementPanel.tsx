@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Shield, ShieldAlert, ShieldCheck, User } from 'lucide-react'
-import { promoteUser, demoteUser } from '@/app/actions/team'
+import { promoteUser, demoteUser, removeUser } from '@/app/actions/team'
+import { Trash2 } from 'lucide-react'
 
 interface User {
     id: string
@@ -17,10 +18,16 @@ interface User {
 
 interface UserManagementPanelProps {
     initialUsers: User[]
-    currentUserId: string
+    currentUser: {
+        id: string
+        email: string
+        role: string
+    }
 }
 
-export function UserManagementPanel({ initialUsers, currentUserId }: UserManagementPanelProps) {
+const MAIN_ADMIN_EMAIL = 'admin@buildsketch.com'
+
+export function UserManagementPanel({ initialUsers, currentUser }: UserManagementPanelProps) {
     const [users, setUsers] = useState(initialUsers)
     const [loading, setLoading] = useState<string | null>(null)
     const router = useRouter()
@@ -57,6 +64,35 @@ export function UserManagementPanel({ initialUsers, currentUserId }: UserManagem
         }
     }
 
+    const handleRemove = async (userId: string) => {
+        if (!confirm('Are you sure you want to PERMANENTLY remove this user? This action cannot be undone.')) return
+
+        setLoading(userId)
+        try {
+            await removeUser(userId)
+            setUsers(users.filter(u => u.id !== userId))
+            router.refresh()
+            alert('User removed successfully.')
+        } catch (error: any) {
+            console.error(error)
+            alert(error.message || 'Failed to remove user.')
+        } finally {
+            setLoading(null)
+        }
+    }
+
+    // RBAC Helper
+    const canRemove = (targetUser: User) => {
+        if (currentUser.email === MAIN_ADMIN_EMAIL) return true
+        if (currentUser.role !== 'ADMIN') return false
+
+        // Regular Admin cannot remove Main Admin or other Admins
+        if (targetUser.email === MAIN_ADMIN_EMAIL) return false
+        if (targetUser.role === 'ADMIN') return false
+
+        return true
+    }
+
     return (
         <Card className="bg-black/40 border-white/10 backdrop-blur-md">
             <CardHeader>
@@ -85,7 +121,7 @@ export function UserManagementPanel({ initialUsers, currentUserId }: UserManagem
                                     {user.role}
                                 </Badge>
 
-                                {user.id !== currentUserId && (
+                                {user.id !== currentUser.id && (
                                     <>
                                         {user.role === 'ADMIN' ? (
                                             <Button
@@ -106,6 +142,19 @@ export function UserManagementPanel({ initialUsers, currentUserId }: UserManagem
                                                 disabled={loading === user.id}
                                             >
                                                 {loading === user.id ? '...' : <ShieldCheck className="h-4 w-4" />}
+                                            </Button>
+                                        )}
+
+                                        {canRemove(user) && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="text-destructive hover:bg-destructive/10"
+                                                onClick={() => handleRemove(user.id)}
+                                                disabled={loading === user.id}
+                                                title="Remove User"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
                                             </Button>
                                         )}
                                     </>

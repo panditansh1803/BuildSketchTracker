@@ -46,3 +46,24 @@ export async function checkRole(allowedRoles: UserRole[]) {
     if (!user) return false
     return allowedRoles.includes(user.role as UserRole)
 }
+
+export const MAIN_ADMIN_EMAIL = 'admin@buildsketch.com'
+
+/**
+ * Check if the current user can remove the target user.
+ * Rules:
+ * 1. Main Admin can remove anyone (except self, handled in UI/Action).
+ * 2. Admin can remove PROJECT_OWNER or EMPLOYEE.
+ * 3. Admin CANNOT remove other ADMINs or MAIN ADMIN.
+ * 4. Employees/Users cannot remove anyone.
+ */
+export function canRemoveUser(currentUser: { role: string, email: string }, targetUser: { role: string, email: string }) {
+    if (currentUser.email === MAIN_ADMIN_EMAIL) return true
+    if (currentUser.role !== 'ADMIN') return false
+
+    // Current User is ADMIN (but not Main)
+    if (targetUser.email === MAIN_ADMIN_EMAIL) return false
+    if (targetUser.role === 'ADMIN') return false
+
+    return true
+}

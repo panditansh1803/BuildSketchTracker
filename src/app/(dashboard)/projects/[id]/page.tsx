@@ -12,31 +12,33 @@ import { DownloadProjectPdf } from '@/components/projects/DownloadProjectPdf'
 import MapClientWrapper from '@/components/projects/MapClientWrapper'
 import { checkSlaCompliance } from '@/lib/brain'
 
+import { getProjectTimeStats } from '@/app/actions/time-tracking'
+import { ProjectTimeTracker } from '@/components/projects/ProjectTimeTracker'
+
 export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params
 
     // Run SLA Check on Load (Smart Protocol)
     await checkSlaCompliance(id)
 
-    const project = await prisma.project.findUnique({
-        where: { id },
-        include: {
-            documents: true,
-            photos: true,
-            assignedTo: true,
-            history: {
-                orderBy: { createdAt: 'desc' }
-                // Removed 'take' limit for Full Audit Trail reporting
+    // Parallel Fetching
+    const [project, users, timeStats] = await Promise.all([
+        prisma.project.findUnique({
+            where: { id },
+            include: {
+                documents: true,
+                photos: true,
+                assignedTo: true,
+                history: {
+                    orderBy: { createdAt: 'desc' }
+                },
             },
-        },
-    })
+        }),
+        prisma.user.findMany({ select: { id: true, name: true } }),
+        getProjectTimeStats(id)
+    ])
 
     if (!project) notFound()
-
-    // Fetch users for assignment dropdown
-    const users = await prisma.user.findMany({
-        select: { id: true, name: true }
-    })
 
     const historyEntries = project.history.map((h: any) => ({
         id: h.id,
@@ -54,7 +56,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     <p className="text-muted-foreground">ID: {project.projectId} • {project.stage}</p>
                 </div>
                 <div className="flex items-center gap-4">
-                    <DownloadProjectPdf project={project} />
+                    <DownloadProjectPdf project={project} timeStats={timeStats} />
                     <div className="text-right hidden sm:block">
                         <p className="text-2xl font-bold">{project.percentComplete}%</p>
                         <p className="text-xs text-muted-foreground uppercase tracking-wider">Completion</p>
@@ -64,8 +66,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                 </div>
             </div>
 
-            {/* Row 2: Timeline & Map */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Row 2: Timeline, Time & Map */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <Card className="h-full">
                     <CardContent className="pt-6">
                         <div className="mb-4">
@@ -74,6 +76,15 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                         </div>
                     </CardContent>
                 </Card>
+
+                <div className="h-full">
+                    <ProjectTimeTracker
+                        projectId={project.id}
+                        totalMinutes={timeStats.totalMinutes}
+                        userStats={timeStats.userStats}
+                        hasActiveSession={timeStats.activeSession}
+                    />
+                </div>
 
                 <Card className="h-full overflow-hidden">
                     <div className="h-[300px] w-full relative">
@@ -144,6 +155,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

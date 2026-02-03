@@ -59,7 +59,7 @@ export default async function TeamPage() {
                 {/* Sidebar: Feed & Management */}
                 <div className="lg:col-span-1 space-y-8">
                     <div className="space-y-4">
-                        <UserManagementPanel initialUsers={allUsers} currentUserId={user.id} />
+                        <UserManagementPanel initialUsers={allUsers} currentUser={user} />
                     </div>
 
                     <div className="space-y-4">

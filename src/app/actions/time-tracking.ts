@@ -129,3 +129,37 @@ export async function getAllWorkLogs() {
         }
     })
 }
+
+export async function getProjectTimeStats(projectId: string) {
+    const logs = await prisma.workLog.findMany({
+        where: { projectId },
+        include: { user: true }
+    })
+
+    let totalMinutes = 0
+    const userStats: Record<string, { name: string, minutes: number }> = {}
+
+    for (const log of logs) {
+        let duration = log.duration || 0
+
+        // If still active, calculate current duration
+        if (!log.endTime) {
+            const now = new Date()
+            duration = Math.round((now.getTime() - log.startTime.getTime()) / 1000 / 60)
+        }
+
+        totalMinutes += duration
+
+        if (!userStats[log.userId]) {
+            userStats[log.userId] = { name: log.user.name, minutes: 0 }
+        }
+        userStats[log.userId].minutes += duration
+    }
+
+    return {
+        totalMinutes,
+        userStats: Object.values(userStats),
+        activeSession: logs.find(l => !l.endTime) ? true : false
+    }
+}
+
