@@ -100,9 +100,10 @@ export async function GET(request: Request) {
         let errorMessage = encodeURIComponent(exchangeError.message)
 
         if (exchangeError.message?.includes('code verifier')) {
-            // PKCE error - user is on different browser
-            // Redirect to client-side confirm to try token-based auth
-            return NextResponse.redirect(getRedirectUrl('/auth/confirm?retry=true'))
+            // PKCE error - user might be on different browser OR server couldn't access cookie.
+            // Redirect to client-side confirm to let the client SDK try the exchange
+            // (Client SDK might have access to the verifier in local storage/cookie if server missed it)
+            return NextResponse.redirect(getRedirectUrl(`/auth/confirm?code=${code}`))
         } else if (exchangeError.message?.includes('expired')) {
             errorType = 'link_expired'
         } else if (exchangeError.message?.includes('already')) {
