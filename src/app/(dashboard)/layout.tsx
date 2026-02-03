@@ -10,7 +10,7 @@ export default async function DashboardLayout({
     const user = await getCurrentUser();
 
     return (
-        <div className="flex h-screen overflow-hidden bg-transparent">
+        <div className="flex h-screen md:h-[100dvh] overflow-hidden bg-transparent">
             {/* Pass user role to Client Component Sidebar */}
             <Sidebar
                 className="hidden md:flex"
@@ -20,7 +20,7 @@ export default async function DashboardLayout({
             />
             <div className="flex flex-1 flex-col overflow-hidden">
                 <Topbar />
-                <main className="flex-1 overflow-y-auto bg-muted/10 p-6">
+                <main className="flex-1 overflow-y-auto bg-muted/10 p-6 pb-20">
                     {children}
                 </main>
             </div>
