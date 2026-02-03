@@ -46,15 +46,23 @@ function AuthErrorContent() {
                     ]
                 }
 
-            case 'token_hash_failed':
             case 'pkce_failed':
                 return {
-                    title: 'Verification Issue',
-                    description: 'The verification link could not be processed completely. This often happens if the link was already clicked by an email scanner.',
+                    title: 'Different Browser Detected',
+                    description: 'For security, the confirmation link works ONLY in the same browser window where you signed up.',
                     suggestions: [
-                        'Your account might already be verified. Please try logging in below.',
-                        'If login fails, request a new confirmation email.',
-                        'Ensure you are opening the link in the same browser you signed up with.'
+                        '👉 COPY the link from your email.',
+                        '👉 PASTE it into the ORIGINAL browser where you created the account.',
+                        'Alternatively: Try logging in below. If allowed, you can request a new code.'
+                    ]
+                }
+            case 'token_hash_failed':
+                return {
+                    title: 'Link Expired or Invalid',
+                    description: 'The verification link is invalid. It may have been already used.',
+                    suggestions: [
+                        'Try logging in below (you might already be verified).',
+                        'Request a new confirmation email.',
                     ]
                 }
             default:
