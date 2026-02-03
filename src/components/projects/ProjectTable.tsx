@@ -54,7 +54,7 @@ export function ProjectTable({ projects }: { projects: Project[] }) {
                     {projects.map((project) => (
                         <TableRow
                             key={project.id}
-                            className={`cursor-pointer hover:bg-muted/50 ${project.isDelayed ? 'bg-amber-50 hover:bg-amber-100' : ''}`}
+                            className={`cursor-pointer hover:bg-muted/50 transition-colors ${project.isDelayed ? 'bg-amber-950/30 hover:bg-amber-950/50 text-amber-50' : ''}`}
                             onClick={() => router.push(`/projects/${project.id}`)}
                         >
                             <TableCell className="font-medium">{project.projectId}</TableCell>
