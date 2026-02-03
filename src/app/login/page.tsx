@@ -53,7 +53,7 @@ export default function LoginPage() {
                 email,
                 password,
                 options: {
-                    emailRedirectTo: `${location.origin}/auth/callback`,
+                    emailRedirectTo: `${location.origin}/auth/confirm`,
                 },
             })
 
@@ -79,10 +79,10 @@ export default function LoginPage() {
                 <Card className="w-full max-w-md border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl animate-[float_6s_ease-in-out_infinite]">
                     <CardHeader className="text-center pb-2">
                         <div className="mx-auto mb-4 relative h-16 w-16 overflow-hidden rounded-xl border border-white/10 shadow-lg">
-                            <Image 
-                                src="/logo.png" 
-                                alt="BuildSketch Logo" 
-                                fill 
+                            <Image
+                                src="/logo.png"
+                                alt="BuildSketch Logo"
+                                fill
                                 className="object-cover"
                                 priority
                             />
