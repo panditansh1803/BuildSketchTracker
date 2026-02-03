@@ -10,6 +10,7 @@ import { Suspense } from 'react'
 function AuthErrorContent() {
     const searchParams = useSearchParams()
     const errorType = searchParams.get('error') || 'unknown'
+    const errorMessage = searchParams.get('message') || ''
 
 
     const getErrorDetails = () => {
@@ -44,14 +45,26 @@ function AuthErrorContent() {
                         'Contact support if this persists for more than 5 minutes'
                     ]
                 }
+
+            case 'token_hash_failed':
+            case 'pkce_failed':
+                return {
+                    title: 'Verification Issue',
+                    description: 'The verification link could not be processed completely. This often happens if the link was already clicked by an email scanner.',
+                    suggestions: [
+                        'Your account might already be verified. Please try logging in below.',
+                        'If login fails, request a new confirmation email.',
+                        'Ensure you are opening the link in the same browser you signed up with.'
+                    ]
+                }
             default:
                 return {
                     title: 'Authentication Error',
                     description: 'Something went wrong during the authentication process.',
                     suggestions: [
-                        'Try signing up or logging in again',
-                        'Clear your browser cache',
-                        'Contact support if the problem continues'
+                        'Try logging in directly - you might already be verified.',
+                        'Try signing up again if you cannot log in.',
+                        'Clear your browser cache'
                     ]
                 }
         }
@@ -73,6 +86,12 @@ function AuthErrorContent() {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
+                    {/* Error message if provided */}
+                    {errorMessage && (
+                        <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-200 text-sm">
+                            <p className="font-mono text-xs break-all">{errorMessage}</p>
+                        </div>
+                    )}
 
 
                     {/* Suggestions */}
