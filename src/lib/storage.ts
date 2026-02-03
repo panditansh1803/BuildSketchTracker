@@ -1,32 +1,52 @@
-import fs from 'fs/promises'
-import path from 'path'
+
+import { createClient } from '@/lib/supabase/server'
 import { v4 as uuidv4 } from 'uuid'
 
-export async function saveFile(file: File, folder: 'documents' | 'photos'): Promise<string> {
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const filename = `${uuidv4()}-${file.name}`
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', folder)
+const BUCKET_NAME = 'project-assets'
 
-    try {
-        await fs.access(uploadDir)
-    } catch {
-        await fs.mkdir(uploadDir, { recursive: true })
+export async function saveFile(file: File, folder: 'documents' | 'photos'): Promise<string> {
+    const supabase = await createClient()
+    const buffer = await file.arrayBuffer()
+    const filename = `${uuidv4()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+    const path = `${folder}/${filename}`
+
+    const { error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(path, buffer, {
+            contentType: file.type,
+            upsert: false
+        })
+
+    if (error) {
+        console.error('Supabase Storage Upload Error:', error)
+        throw new Error('Failed to upload file to storage.')
     }
 
-    const filePath = path.join(uploadDir, filename)
-    await fs.writeFile(filePath, buffer)
+    // Get public URL
+    const { data } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(path)
 
-    return `/uploads/${folder}/${filename}`
+    return data.publicUrl
 }
 
 export async function deleteFile(url: string): Promise<void> {
-    if (!url.startsWith('/uploads/')) return
+    if (!url.includes(BUCKET_NAME)) return // Ignore if not from our bucket (or legacy local file)
 
-    const filePath = path.join(process.cwd(), 'public', url)
-    try {
-        await fs.unlink(filePath)
-    } catch (error) {
-        console.error(`Failed to delete file at ${filePath}:`, error)
-        // We don't throw here to avoid blocking DB deletion if file is missing
+    // Extract path from URL
+    // Format: https://[project].supabase.co/storage/v1/object/public/[bucket]/[folder]/[filename]
+    const parts = url.split(`${BUCKET_NAME}/`)
+    if (parts.length < 2) return
+
+    const path = parts[1]
+
+    const supabase = await createClient()
+    const { error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .remove([path])
+
+    if (error) {
+        console.error('Supabase Storage Delete Error:', error)
+        // Don't throw, let DB cleanup proceed
     }
 }

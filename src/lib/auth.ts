@@ -58,11 +58,15 @@ export const MAIN_ADMIN_EMAIL = 'admin@buildsketch.com'
  * 4. Employees/Users cannot remove anyone.
  */
 export function canRemoveUser(currentUser: { role: string, email: string }, targetUser: { role: string, email: string }) {
-    if (currentUser.email === MAIN_ADMIN_EMAIL) return true
+    const mainAdmin = MAIN_ADMIN_EMAIL.toLowerCase()
+    const currentEmail = currentUser.email.toLowerCase()
+    const targetEmail = targetUser.email.toLowerCase()
+
+    if (currentEmail === mainAdmin) return true
     if (currentUser.role !== 'ADMIN') return false
 
     // Current User is ADMIN (but not Main)
-    if (targetUser.email === MAIN_ADMIN_EMAIL) return false
+    if (targetEmail === mainAdmin) return false
     if (targetUser.role === 'ADMIN') return false
 
     return true

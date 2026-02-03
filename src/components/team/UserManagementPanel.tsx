@@ -83,11 +83,15 @@ export function UserManagementPanel({ initialUsers, currentUser }: UserManagemen
 
     // RBAC Helper
     const canRemove = (targetUser: User) => {
-        if (currentUser.email === MAIN_ADMIN_EMAIL) return true
+        const mainAdmin = MAIN_ADMIN_EMAIL.toLowerCase()
+        const currentEmail = currentUser.email.toLowerCase()
+        const targetEmail = targetUser.email.toLowerCase()
+
+        if (currentEmail === mainAdmin) return true
         if (currentUser.role !== 'ADMIN') return false
 
         // Regular Admin cannot remove Main Admin or other Admins
-        if (targetUser.email === MAIN_ADMIN_EMAIL) return false
+        if (targetEmail === mainAdmin) return false
         if (targetUser.role === 'ADMIN') return false
 
         return true

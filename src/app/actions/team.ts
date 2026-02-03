@@ -179,15 +179,18 @@ export async function removeUser(userId: string) {
     // Let's implement logic directly here to be safe and robust.
 
     const MAIN_ADMIN_EMAIL = 'admin@buildsketch.com'
+    const mainAdmin = MAIN_ADMIN_EMAIL.toLowerCase()
+    const currentEmail = currentUser.email.toLowerCase()
+    const targetEmail = targetUser.email.toLowerCase()
 
     // 1. If Current User is Main Admin -> Allow (unless self, already checked)
-    const isMainAdmin = currentUser.email === MAIN_ADMIN_EMAIL
+    const isMainAdmin = currentEmail === mainAdmin
 
     if (!isMainAdmin) {
         // Current user is just a regular Admin
 
         // Cannot delete Main Admin
-        if (targetUser.email === MAIN_ADMIN_EMAIL) {
+        if (targetEmail === mainAdmin) {
             throw new Error('You cannot remove the Main Admin.')
         }
 
