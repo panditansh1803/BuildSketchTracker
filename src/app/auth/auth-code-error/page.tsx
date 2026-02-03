@@ -10,7 +10,7 @@ import { Suspense } from 'react'
 function AuthErrorContent() {
     const searchParams = useSearchParams()
     const errorType = searchParams.get('error') || 'unknown'
-    const errorMessage = searchParams.get('message') || ''
+
 
     const getErrorDetails = () => {
         switch (errorType) {
@@ -73,12 +73,7 @@ function AuthErrorContent() {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                    {/* Error message if provided */}
-                    {errorMessage && (
-                        <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-200 text-sm">
-                            <p className="font-mono text-xs break-all">{errorMessage}</p>
-                        </div>
-                    )}
+
 
                     {/* Suggestions */}
                     <div className="space-y-2">

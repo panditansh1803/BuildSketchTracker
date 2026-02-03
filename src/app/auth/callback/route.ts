@@ -43,9 +43,8 @@ export async function GET(request: Request) {
             errorType = 'access_denied'
         }
 
-        const message = encodeURIComponent(errorDescription || error)
         return NextResponse.redirect(
-            getRedirectUrl(`/auth/auth-code-error?error=${errorType}&message=${message}`)
+            getRedirectUrl(`/auth/auth-code-error?error=${errorType}`)
         )
     }
 
@@ -111,7 +110,7 @@ export async function GET(request: Request) {
         }
 
         return NextResponse.redirect(
-            getRedirectUrl(`/auth/auth-code-error?error=${errorType}&message=${errorMessage}`)
+            getRedirectUrl(`/auth/auth-code-error?error=${errorType}`)
         )
 
     } catch (err: unknown) {
@@ -125,7 +124,7 @@ export async function GET(request: Request) {
         const errorType = isPaused ? 'database_paused' : 'server_error'
 
         return NextResponse.redirect(
-            getRedirectUrl(`/auth/auth-code-error?error=${errorType}&message=${encodeURIComponent(errorMessage)}`)
+            getRedirectUrl(`/auth/auth-code-error?error=${errorType}`)
         )
     }
 }
