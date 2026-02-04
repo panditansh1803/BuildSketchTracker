@@ -9,15 +9,21 @@ export async function saveFile(file: File, folder: 'documents' | 'photos'): Prom
         throw new Error('Server Error: Missing Supabase Environment Variables.')
     }
 
+    if (file.size === 0) {
+        throw new Error('Upload Error: File is empty (0 bytes).')
+    }
+
+    console.log(`[Storage] Uploading ${file.name} (${file.type}) - ${file.size} bytes`)
+
     const supabase = await createClient()
-    const buffer = await file.arrayBuffer()
+    const buffer = Buffer.from(await file.arrayBuffer())
     const filename = `${uuidv4()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
     const path = `${folder}/${filename}`
 
     const { error } = await supabase.storage
         .from(BUCKET_NAME)
         .upload(path, buffer, {
-            contentType: file.type,
+            contentType: file.type || 'application/octet-stream',
             upsert: false
         })
 
