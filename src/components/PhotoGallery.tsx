@@ -54,10 +54,10 @@ export function PhotoGallery({ projectId, photos, houseType }: { projectId: stri
                     {/* ... (inputs) ... */}
 
                     <div className="flex-1 min-w-[200px] space-y-2">
-                        <Input type="file" name="file" accept="image/*" required />
+                        <Input type="file" name="file" accept="image/*" />
                     </div>
                     <div className="w-[200px] space-y-2">
-                        <Select name="stage" required>
+                        <Select name="stage">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select Stage" />
                             </SelectTrigger>

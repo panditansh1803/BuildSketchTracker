@@ -50,7 +50,6 @@ export function DocumentList({ projectId, documents }: { projectId: string, docu
                         <Input
                             type="file"
                             name="file"
-                            required
                             accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
                             className="cursor-pointer file:cursor-pointer"
                         />
