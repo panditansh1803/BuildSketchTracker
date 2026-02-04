@@ -197,6 +197,20 @@ export async function removeUser(userId: string) {
             }
         }
 
+        // 2. Reassign any projects owned by this user to the Current Admin
+        // This prevents "Foreign key constraint violated" on Project.createdById
+        const userProjects = await prisma.project.count({
+            where: { createdById: userId }
+        })
+
+        if (userProjects > 0) {
+            await prisma.project.updateMany({
+                where: { createdById: userId },
+                data: { createdById: currentUser.id }
+            })
+        }
+
+        // 3. Delete the user
         await prisma.user.delete({
             where: { id: userId }
         })
