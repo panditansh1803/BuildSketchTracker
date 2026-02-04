@@ -21,23 +21,25 @@ import { STAGE_LISTS } from '@/lib/brain'
 
 export function PhotoGallery({ projectId, photos, houseType }: { projectId: string, photos: Photo[], houseType: string }) {
     const [uploading, setUploading] = useState(false)
+    const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null)
 
     // Dynamic from Brain
     const stages = STAGE_LISTS[houseType as keyof typeof STAGE_LISTS] || STAGE_LISTS.Single
 
     async function handleUpload(formData: FormData) {
         setUploading(true)
+        setStatus(null)
         try {
             const result = await uploadPhoto(formData)
             if (result?.error) {
-                alert(`Error: ${result.error}`)
+                setStatus({ type: 'error', message: result.error })
             } else {
-                alert('Photo uploaded successfully!')
+                setStatus({ type: 'success', message: 'Photo uploaded successfully!' })
                 // Optional: Reload page or reset form if simple
                 // window.location.reload() // Or rely on revalidatePath
             }
         } catch (e) {
-            alert('An unexpected error occurred.')
+            setStatus({ type: 'error', message: 'An unexpected error occurred.' })
         } finally {
             setUploading(false)
         }
@@ -49,6 +51,8 @@ export function PhotoGallery({ projectId, photos, houseType }: { projectId: stri
                 <h3 className="font-medium mb-4">Upload Site Photo</h3>
                 <form action={handleUpload} className="flex gap-4 items-end flex-wrap">
                     <input type="hidden" name="projectId" value={projectId} />
+                    {/* ... (inputs) ... */}
+
                     <div className="flex-1 min-w-[200px] space-y-2">
                         <Input type="file" name="file" accept="image/*" required />
                     </div>
@@ -71,6 +75,11 @@ export function PhotoGallery({ projectId, photos, houseType }: { projectId: stri
                         {uploading ? 'Uploading...' : 'Upload'}
                     </Button>
                 </form>
+                {status && (
+                    <div className={`mt-4 p-3 rounded text-sm ${status.type === 'error' ? 'bg-destructive/10 text-destructive' : 'bg-green-500/10 text-green-600'}`}>
+                        {status.message}
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
