@@ -28,7 +28,16 @@ export function PhotoGallery({ projectId, photos, houseType }: { projectId: stri
     async function handleUpload(formData: FormData) {
         setUploading(true)
         try {
-            await uploadPhoto(formData)
+            const result = await uploadPhoto(formData)
+            if (result?.error) {
+                alert(`Error: ${result.error}`)
+            } else {
+                alert('Photo uploaded successfully!')
+                // Optional: Reload page or reset form if simple
+                // window.location.reload() // Or rely on revalidatePath
+            }
+        } catch (e) {
+            alert('An unexpected error occurred.')
         } finally {
             setUploading(false)
         }

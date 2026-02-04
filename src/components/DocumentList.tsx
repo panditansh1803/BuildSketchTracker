@@ -21,7 +21,12 @@ export function DocumentList({ projectId, documents }: { projectId: string, docu
     async function handleUpload(formData: FormData) {
         setUploading(true)
         try {
-            await uploadDocument(formData)
+            const result = (await uploadDocument(formData)) as any
+            if (result?.error) {
+                alert(`Error: ${result.error}`)
+            } else {
+                alert('Document uploaded successfully!')
+            }
         } catch (error: any) {
             console.error('Upload failed:', error)
             alert('Failed to upload document. ' + (error.message || ''))

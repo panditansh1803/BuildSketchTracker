@@ -5,25 +5,43 @@ import { saveFile, deleteFile } from '@/lib/storage'
 import { revalidatePath } from 'next/cache'
 
 export async function uploadPhoto(formData: FormData) {
-    const file = formData.get('file') as File
-    const projectId = formData.get('projectId') as string
-    const stage = formData.get('stage') as string
-    const caption = formData.get('caption') as string
+    try {
+        const file = formData.get('file') as File
+        const projectId = formData.get('projectId') as string
+        const stage = formData.get('stage') as string
+        const caption = formData.get('caption') as string
 
-    if (!file || !projectId || !stage) throw new Error('Missing file, project ID, or stage')
+        if (!file || !projectId || !stage) {
+            return { error: 'Missing file, project ID, or stage' }
+        }
 
-    const url = await saveFile(file, 'photos')
+        // Validate Project Exists
+        const projectExists = await prisma.project.findUnique({
+            where: { id: projectId },
+            select: { id: true }
+        })
 
-    await prisma.sitePhoto.create({
-        data: {
-            url,
-            stage,
-            caption,
-            projectId,
-        },
-    })
+        if (!projectExists) {
+            return { error: 'Project not found. Cannot upload photo.' }
+        }
 
-    revalidatePath(`/projects/${projectId}`)
+        const url = await saveFile(file, 'photos')
+
+        await prisma.sitePhoto.create({
+            data: {
+                url,
+                stage,
+                caption,
+                projectId,
+            },
+        })
+
+        revalidatePath(`/projects/${projectId}`)
+        return { success: true }
+    } catch (error: any) {
+        console.error('Upload Photo Error:', error)
+        return { error: error.message || 'Failed to upload photo' }
+    }
 }
 
 export async function deletePhoto(id: string, projectId: string) {
