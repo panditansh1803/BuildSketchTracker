@@ -5,6 +5,10 @@ import { v4 as uuidv4 } from 'uuid'
 const BUCKET_NAME = 'project-assets'
 
 export async function saveFile(file: File, folder: 'documents' | 'photos'): Promise<string> {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        throw new Error('Server Error: Missing Supabase Environment Variables.')
+    }
+
     const supabase = await createClient()
     const buffer = await file.arrayBuffer()
     const filename = `${uuidv4()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
@@ -19,7 +23,7 @@ export async function saveFile(file: File, folder: 'documents' | 'photos'): Prom
 
     if (error) {
         console.error('Supabase Storage Upload Error:', error)
-        throw new Error('Failed to upload file to storage.')
+        throw new Error(`Storage Upload Failed: ${error.message}`)
     }
 
     // Get public URL
