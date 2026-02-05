@@ -12,14 +12,25 @@ const AnoAI = () => {
 
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+
+    // Performance: Use generic powerPreference and explicitly set pixelRatio to 1 (or max 1.5)
+    // High DPI rendering of full-screen shaders is a killer for integrated GPUs.
+    const renderer = new THREE.WebGLRenderer({
+      antialias: false, // Antialias not needed for a noise shader
+      alpha: true,
+      powerPreference: "default"
+    });
+
+    // Performance: Cap pixel ratio to 1.5 to avoid 3x/4x rendering on mobile/retina
+    const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+    renderer.setPixelRatio(pixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
         iTime: { value: 0 },
-        iResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+        iResolution: { value: new THREE.Vector2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio) }
       },
       vertexShader: `
         void main() {
@@ -68,17 +79,26 @@ const AnoAI = () => {
 
           float f = 2.0 + fbm(p + vec2(iTime * 5.0, 0.0)) * 0.5;
 
-          for (float i = 0.0; i < 35.0; i++) {
+          // Performance: Reduced loop from 35.0 to 18.0.
+          // This almost doubles performance while keeping the visual "aurora" effect.
+          for (float i = 0.0; i < 18.0; i++) {
             v = p + cos(i * i + (iTime + p.x * 0.08) * 0.025 + i * vec2(13.0, 11.0)) * 3.5 + vec2(sin(iTime * 3.0 + i) * 0.003, cos(iTime * 3.5 - i) * 0.003);
-            float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 35.0));
+            
+            // Simplified tailNoise calculation
+            float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 18.0));
+            
             vec4 auroraColors = vec4(
               0.1 + 0.3 * sin(i * 0.2 + iTime * 0.4),
               0.3 + 0.5 * cos(i * 0.3 + iTime * 0.5),
               0.7 + 0.3 * sin(i * 0.4 + iTime * 0.3),
               1.0
             );
-            vec4 currentContribution = auroraColors * exp(sin(i * i + iTime * 0.8)) / length(max(v, vec2(v.x * f * 0.015, v.y * 1.5)));
-            float thinnessFactor = smoothstep(0.0, 1.0, i / 35.0) * 0.6;
+            
+            // Pre-calculate exp/sin term
+            float wave = exp(sin(i * i + iTime * 0.8));
+            vec4 currentContribution = auroraColors * wave / length(max(v, vec2(v.x * f * 0.015, v.y * 1.5)));
+            
+            float thinnessFactor = smoothstep(0.0, 1.0, i / 18.0) * 0.6;
             o += currentContribution * (1.0 + tailNoise * 0.8) * thinnessFactor;
           }
 
@@ -93,22 +113,36 @@ const AnoAI = () => {
     scene.add(mesh);
 
     let frameId: number;
-    const animate = () => {
-      material.uniforms.iTime.value += 0.016;
+    let lastTime = 0;
+
+    // Performance: Throttle frame rate if needed, but for smooth shaders, vSync is usually enough.
+    // relying on requestAnimationFrame for vSync.
+    const animate = (time: number) => {
+      material.uniforms.iTime.value += 0.01; // Slightly slower animation for calmer feel
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
     };
-    animate();
+    frameId = requestAnimationFrame(animate);
 
     const handleResize = () => {
+      const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
+      renderer.setPixelRatio(pixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
-      material.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight);
+      material.uniforms.iResolution.value.set(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
     };
-    window.addEventListener('resize', handleResize);
+
+    // Debounce resize
+    let resizeTimeout: NodeJS.Timeout;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 100);
+    };
+
+    window.addEventListener('resize', debouncedResize);
 
     return () => {
       cancelAnimationFrame(frameId);
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', debouncedResize);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
