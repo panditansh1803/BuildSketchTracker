@@ -119,6 +119,30 @@ export function ProjectForm({
         additionalAssigneeIds: project.additionalAssignees?.map(u => u.id) || [] as string[]
     })
 
+    // Sync state with props when project updates (essential for server action refreshes)
+    React.useEffect(() => {
+        setFormData({
+            projectId: project.projectId,
+            name: project.name,
+            houseType: project.houseType,
+            stage: project.stage,
+            status: project.status,
+            assignedToId: project.assignedToId || 'unassigned',
+            startDate: project.startDate ? new Date(project.startDate).toISOString().split('T')[0] : '',
+            targetFinish: project.targetFinish ? new Date(project.targetFinish).toISOString().split('T')[0] : '',
+            actualFinish: project.actualFinish ? new Date(project.actualFinish).toISOString().split('T')[0] : '',
+            latitude: project.latitude?.toString() || '',
+            longitude: project.longitude?.toString() || '',
+            notes: project.notes || '',
+            delayReason: project.delayReason || '',
+            clientId: project.clientId || 'unassigned',
+            clientName: project.clientName || '',
+            clientRequirements: project.clientRequirements || '',
+            clientDelayDays: project.clientDelayDays?.toString() || '0',
+            additionalAssigneeIds: project.additionalAssignees?.map(u => u.id) || [] as string[]
+        })
+    }, [project])
+
 
     const stages = STAGE_LISTS[formData.houseType as keyof typeof STAGE_LISTS] || STAGE_LISTS.Single
 
@@ -481,11 +505,46 @@ export function ProjectForm({
                                         <Input
                                             type="number"
                                             value={formData.clientDelayDays}
-                                            onChange={(e) => setFormData({ ...formData, clientDelayDays: e.target.value })}
+                                            onChange={(e) => {
+                                                const inputValue = e.target.value
+                                                const newDelay = parseInt(inputValue) || 0
+                                                const oldDelay = parseInt(project.clientDelayDays?.toString() || '0')
+                                                const diff = newDelay - oldDelay
+
+                                                // Safe Date Math (noon normalized to avoid timezone rollover)
+                                                // Create date from YYYY-MM-DD string to ensure local/UTC consistency
+                                                const originalDateParts = project.targetFinish // Date object or string
+                                                    ? new Date(project.targetFinish).toISOString().split('T')[0].split('-')
+                                                    : null
+
+                                                if (originalDateParts) {
+                                                    // Explicitly construct local date at noon
+                                                    const baseDate = new Date(
+                                                        parseInt(originalDateParts[0]),
+                                                        parseInt(originalDateParts[1]) - 1,
+                                                        parseInt(originalDateParts[2]),
+                                                        12, 0, 0
+                                                    )
+
+                                                    // Add Days
+                                                    baseDate.setDate(baseDate.getDate() + diff)
+
+                                                    setFormData({
+                                                        ...formData,
+                                                        clientDelayDays: inputValue,
+                                                        targetFinish: baseDate.toISOString().split('T')[0]
+                                                    })
+                                                } else {
+                                                    setFormData({
+                                                        ...formData,
+                                                        clientDelayDays: inputValue
+                                                    })
+                                                }
+                                            }}
                                             className="bg-white"
                                             placeholder="0"
                                         />
-                                        <p className="text-[10px] text-blue-700">Changing this Auto-Shifts Target Date.</p>
+                                        <p className="text-[10px] text-blue-700">Changing this Auto-Shifts Target Date (Delta: {parseInt(formData.clientDelayDays || '0') - (project.clientDelayDays || 0)} days).</p>
                                     </div>
                                 )}
 

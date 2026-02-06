@@ -95,8 +95,10 @@ export async function updateProject(projectId: string, formData: FormData) {
         }
     }
 
-    // Coerce clientDelayDays
-    if (rawData.clientDelayDays) rawData.clientDelayDays = parseInt(rawData.clientDelayDays)
+    // Coerce clientDelayDays (Handling "0" explicitly)
+    if (rawData.clientDelayDays !== null && rawData.clientDelayDays !== undefined) {
+        rawData.clientDelayDays = parseInt(rawData.clientDelayDays)
+    }
 
 
     // 2. STRICT SECURITY FILTER (RBAC)
