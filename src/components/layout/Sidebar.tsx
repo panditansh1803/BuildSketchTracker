@@ -46,8 +46,12 @@ export function Sidebar({ className, userRole, userName, userEmail }: SidebarPro
     }
 
     // RBAC: Filter items or add Team items
-    const visibleItems = [...navItems]
-    if (userRole === 'ADMIN') {
+    let visibleItems = [...navItems]
+
+    // Security: Filter items for GUEST
+    if (userRole === 'GUEST') {
+        visibleItems = visibleItems.filter(item => item.name === 'Dashboard')
+    } else if (userRole === 'ADMIN') {
         // Insert Team link after Dashboard
         visibleItems.splice(1, 0, { name: 'Team', href: '/team', icon: Users })
     }

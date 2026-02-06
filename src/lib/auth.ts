@@ -32,7 +32,7 @@ export async function getCurrentUser() {
                     supabaseId: user.id,
                     email: user.email,
                     name: user.user_metadata?.full_name || user.email.split('@')[0],
-                    role: 'PROJECT_OWNER',
+                    role: 'GUEST', // Default to GUEST for security (Pending Approval)
                 }
             })
         }

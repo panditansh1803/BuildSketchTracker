@@ -80,7 +80,14 @@ export async function updateProject(projectId: string, formData: FormData) {
     const keys = ['stage', 'status', 'address', 'latitude', 'longitude', 'houseType', 'assignedToId', 'clientId', 'targetFinish', 'actualFinish', 'notes', 'delayReason', 'clientName', 'clientRequirements']
     keys.forEach(k => {
         const v = formData.get(k)
-        if (v !== null && v !== '') rawData[k] = v
+        if (v !== null && v !== '') {
+            // Handle 'unassigned' signal
+            if (v === 'unassigned') {
+                rawData[k] = null
+            } else {
+                rawData[k] = v
+            }
+        }
     })
 
     // Special handling for Arrays (Multi-Select)

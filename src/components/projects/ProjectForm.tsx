@@ -130,11 +130,8 @@ export function ProjectForm({
             if (formData.assignedToId && formData.assignedToId !== 'unassigned') {
                 data.append('assignedToId', formData.assignedToId)
             } else {
-                // Explicitly handle unassigning if API supports it (API might need update if we want to clear)
-                // For now, assume 'unassigned' means don't update or send null if backend handles it
-                // Backend actions usually ignore if not present? Or if we send empty?
-                // Let's ensure we can unassign: usually sending empty string or specific flag is needed.
-                // For now, follow existing pattern.
+                // Explicitly send 'unassigned' so action knows to nullify it
+                data.append('assignedToId', 'unassigned')
             }
 
             if (formData.startDate) data.append('startDate', formData.startDate)
@@ -148,6 +145,9 @@ export function ProjectForm({
             // Client
             if (formData.clientId && formData.clientId !== 'unassigned') {
                 data.append('clientId', formData.clientId)
+            } else {
+                // Explicitly send 'unassigned' so action knows to nullify it
+                data.append('clientId', 'unassigned')
             }
             if (formData.clientName) data.append('clientName', formData.clientName)
             if (formData.clientRequirements) data.append('clientRequirements', formData.clientRequirements)

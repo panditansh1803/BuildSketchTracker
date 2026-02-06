@@ -18,6 +18,23 @@ export default async function Dashboard() {
     const user = await getCurrentUser()
     if (!user) return <div>Please log in</div>
 
+    // Security: Block GUEST access
+    if (user.role === 'GUEST') {
+        return (
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
+                <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl max-w-md">
+                    <h2 className="text-2xl font-bold text-white mb-2">Account Pending Approval</h2>
+                    <p className="text-zinc-400">
+                        Your account has been created but requires administrator approval to access project data.
+                    </p>
+                    <div className="mt-6 flex justify-center">
+                        <div className="h-2 w-2 bg-yellow-500 rounded-full animate-ping" />
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     // Spec: KPI Cards (Total Active, Total Delayed)
 
     let where: Prisma.ProjectWhereInput = {}
