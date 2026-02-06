@@ -19,7 +19,15 @@ export default async function ClientsPage() {
     // 2. Fetch Employees (for assignment dropdowns)
     const employees = await prisma.user.findMany({
         where: { role: { in: ['EMPLOYEE', 'ADMIN', 'PROJECT_OWNER'] } }, // Anyone who can be assigned
-        select: { id: true, name: true, email: true, role: true }
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            _count: {
+                select: { allowedClients: true }
+            }
+        }
     })
 
     // 3. Manual Clients Logic (Keep existing)

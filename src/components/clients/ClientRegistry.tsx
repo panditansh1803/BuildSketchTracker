@@ -294,11 +294,21 @@ function ManageAccessDialog({ client, allEmployees }: { client: any, allEmployee
                                     <SelectValue placeholder="Select Employee..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {availableEmployees.map(e => (
-                                        <SelectItem key={e.id} value={e.id}>
-                                            {e.name}
-                                        </SelectItem>
-                                    ))}
+                                    {availableEmployees.map(e => {
+                                        const busyCount = e._count?.allowedClients || 0
+                                        return (
+                                            <SelectItem key={e.id} value={e.id}>
+                                                <div className="flex items-center justify-between w-full gap-2">
+                                                    <span>{e.name}</span>
+                                                    {busyCount > 0 && (
+                                                        <span className="text-xs text-muted-foreground">
+                                                            (Busy: {busyCount})
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </SelectItem>
+                                        )
+                                    })}
                                 </SelectContent>
                             </Select>
                         </div>
