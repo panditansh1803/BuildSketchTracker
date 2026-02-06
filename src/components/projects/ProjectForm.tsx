@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import {
     Dialog,
     DialogContent,
@@ -149,8 +150,9 @@ export function ProjectForm({
                 // Explicitly send 'unassigned' so action knows to nullify it
                 data.append('clientId', 'unassigned')
             }
-            if (formData.clientName) data.append('clientName', formData.clientName)
-            if (formData.clientRequirements) data.append('clientRequirements', formData.clientRequirements)
+            // Always append manual client fields (even if empty, to allow clearing)
+            data.append('clientName', formData.clientName || '')
+            data.append('clientRequirements', formData.clientRequirements || '')
 
 
             // Append array
