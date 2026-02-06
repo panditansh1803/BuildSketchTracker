@@ -15,6 +15,7 @@ model User {
   role          String    @default("PROJECT_OWNER")
   // Supabase ID handling (Keep for Auth)
   supabaseId    String?   @unique 
+  isActive      Boolean   @default(true) // Added for Client Registry 
 
   projects      Project[] @relation("AssignedUser")
   ownedProjects Project[] @relation("ProjectOwner")
@@ -23,6 +24,10 @@ model User {
   assistedProjects Project[] @relation("AdditionalAssignees")
   // history       ProjectHistory[] // OMITTED: Impossible relation (ProjectHistory has no User FK)
   workLogs      WorkLog[]
+
+  // New RBAC relation: Explicitly allow employees to view/manage this client
+  allowedEmployees User[] @relation("ClientAllowedEmployees")
+  allowedClients   User[] @relation("ClientAllowedEmployees")
 }
 
 model WorkLog {
