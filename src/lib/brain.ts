@@ -210,15 +210,14 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
             changes.clientDelayDays = newData.clientDelayDays
             logChange('clientDelayDays', oldProject.clientDelayDays, newData.clientDelayDays)
 
-            // DYNAMIC SCHEDULING TRIGGER
-            // Formulas: T_Final = T_Original + D_System + D_Client
-            const originalTarget = oldProject.originalTarget
-            const systemDelay = oldProject.delayDays // Don't change system delay here
-            const clientDelay = newData.clientDelayDays
+            // DYNAMIC SCHEDULING TRIGGER (DELTA LOGIC)
+            // Formula: T_New = T_Current + (D_New - D_Old)
+            const oldDelay = oldProject.clientDelayDays || 0
+            const newDelay = newData.clientDelayDays
+            const diffDays = newDelay - oldDelay
 
-            const totalDelay = systemDelay + clientDelay
-            // Calculate new target base
-            const newTargetTime = originalTarget.getTime() + (totalDelay * 24 * 60 * 60 * 1000)
+            const currentTargetTime = oldProject.targetFinish.getTime()
+            const newTargetTime = currentTargetTime + (diffDays * 24 * 60 * 60 * 1000)
             const newTargetDate = new Date(newTargetTime)
 
             changes.targetFinish = newTargetDate
