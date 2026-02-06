@@ -32,7 +32,14 @@ export default async function ProjectsPage({
     const andConditions = where.AND as Prisma.ProjectWhereInput[]
 
     if (user.role === 'CLIENT') {
-        andConditions.push({ assignedToId: user.id })
+        andConditions.push({ clientId: user.id })
+    } else if (user.role === 'EMPLOYEE') {
+        andConditions.push({
+            OR: [
+                { assignedToId: user.id },
+                { additionalAssignees: { some: { id: user.id } } }
+            ]
+        })
     }
 
     if (query) {

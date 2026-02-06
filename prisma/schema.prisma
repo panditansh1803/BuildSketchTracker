@@ -18,6 +18,9 @@ model User {
 
   projects      Project[] @relation("AssignedUser")
   ownedProjects Project[] @relation("ProjectOwner")
+  // New Additive Relations
+  clientProjects   Project[] @relation("ClientProject")
+  assistedProjects Project[] @relation("AdditionalAssignees")
   // history       ProjectHistory[] // OMITTED: Impossible relation (ProjectHistory has no User FK)
   workLogs      WorkLog[]
 }
@@ -49,6 +52,12 @@ model Project {
   // Relations
   assignedToId   String?
   assignedTo     User?     @relation("AssignedUser", fields: [assignedToId], references: [id])
+  
+  // New Additive Fields (Optional)
+  clientId       String?
+  client         User?     @relation("ClientProject", fields: [clientId], references: [id])
+  additionalAssignees User[] @relation("AdditionalAssignees")
+
   createdById    String
   createdBy      User      @relation("ProjectOwner", fields: [createdById], references: [id])
 

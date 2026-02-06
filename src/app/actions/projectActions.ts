@@ -76,11 +76,23 @@ export async function updateProject(projectId: string, formData: FormData) {
     const rawData: Record<string, any> = {}
 
     // Explicit mapping to avoid 'any' if possible, or iterative
-    const keys = ['stage', 'status', 'address', 'latitude', 'longitude', 'houseType', 'assignedToId', 'targetFinish', 'actualFinish', 'notes', 'delayReason']
+    // Explicit mapping to avoid 'any' if possible, or iterative
+    const keys = ['stage', 'status', 'address', 'latitude', 'longitude', 'houseType', 'assignedToId', 'clientId', 'targetFinish', 'actualFinish', 'notes', 'delayReason']
     keys.forEach(k => {
         const v = formData.get(k)
         if (v !== null && v !== '') rawData[k] = v
     })
+
+    // Special handling for Arrays (Multi-Select)
+    // Multi-select inputs usually append multiple values for the same key 'additionalAssignees'
+    const additionalAssignees = formData.getAll('additionalAssignees')
+    if (additionalAssignees.length > 0) {
+        // filter out empty strings
+        const cleanAssignees = additionalAssignees.map(v => v.toString()).filter(v => v !== '')
+        if (cleanAssignees.length > 0) {
+            rawData.additionalAssigneeIds = cleanAssignees
+        }
+    }
 
     // Handle lat/lng coercion if string
     const val = ProjectUpdateSchema.safeParse(rawData)

@@ -28,6 +28,7 @@ import { STAGE_LISTS } from '@/lib/brain'
 type UserOption = {
     id: string
     name: string
+    role: string // Added role for filtering
 }
 
 type ProjectData = {
@@ -46,6 +47,8 @@ type ProjectData = {
     notes: string | null
     isDelayed: boolean
     delayReason: string | null
+    clientId: string | null // NEW
+    additionalAssignees: { id: string }[] // NEW
 }
 
 export function ProjectForm({
@@ -73,7 +76,9 @@ export function ProjectForm({
         latitude: project.latitude?.toString() || '',
         longitude: project.longitude?.toString() || '',
         notes: project.notes || '',
-        delayReason: project.delayReason || ''
+        delayReason: project.delayReason || '',
+        clientId: project.clientId || 'unassigned',
+        additionalAssigneeIds: project.additionalAssignees?.map(u => u.id) || [] as string[]
     })
 
     const stages = STAGE_LISTS[formData.houseType as keyof typeof STAGE_LISTS] || STAGE_LISTS.Single
@@ -99,6 +104,12 @@ export function ProjectForm({
             if (formData.longitude) data.append('longitude', formData.longitude)
             if (formData.notes) data.append('notes', formData.notes)
             if (formData.delayReason) data.append('delayReason', formData.delayReason)
+            if (formData.clientId && formData.clientId !== 'unassigned') data.append('clientId', formData.clientId)
+
+            // Append array
+            formData.additionalAssigneeIds.forEach(id => {
+                data.append('additionalAssignees', id)
+            })
 
             await updateProject(project.id, data)
             setOpen(false)
@@ -208,7 +219,7 @@ export function ProjectForm({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="unassigned">Unassigned</SelectItem>
-                                    {users.map((u) => (
+                                    {users.filter(u => u.role === 'EMPLOYEE' || u.role === 'PROJECT_OWNER').map((u) => (
                                         <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                                     ))}
                                 </SelectContent>
@@ -230,6 +241,55 @@ export function ProjectForm({
                                     <SelectItem value="Past Target">Past Target</SelectItem>
                                 </SelectContent>
                             </Select>
+                        </div>
+                    </div>
+
+                    {/* New Additive Fields: Client & Additional Team */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Client (Optional)</Label>
+                            <Select
+                                value={formData.clientId}
+                                onValueChange={(val) => setFormData({ ...formData, clientId: val })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Client" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unassigned">No Client</SelectItem>
+                                    {users.filter(u => u.role === 'CLIENT').map((u) => (
+                                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Additional Team</Label>
+                            <Select
+                                value={formData.additionalAssigneeIds[0] || ""} // Simple single select UI for now to avoid complex multi-select UI component dependency, OR use HTML select multiple
+                                onValueChange={(val) => {
+                                    // Append if not exists? No, Select is single value usually.
+                                    // Let's implement a simple multi-select using standard HTML for safety
+                                    const current = new Set(formData.additionalAssigneeIds)
+                                    if (current.has(val)) current.delete(val)
+                                    else current.add(val)
+                                    setFormData({ ...formData, additionalAssigneeIds: Array.from(current) })
+                                }}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={`${formData.additionalAssigneeIds.length} Selected`} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {users.filter(u => u.role === 'EMPLOYEE').map((u) => (
+                                        <SelectItem key={u.id} value={u.id}>
+                                            {u.name} {formData.additionalAssigneeIds.includes(u.id) ? '✓' : ''}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <div className="text-xs text-muted-foreground">
+                                {formData.additionalAssigneeIds.length} additional members
+                            </div>
                         </div>
                     </div>
 

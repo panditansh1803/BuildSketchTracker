@@ -20,9 +20,18 @@ export default async function Dashboard() {
 
     // Spec: KPI Cards (Total Active, Total Delayed)
 
-    const where: Prisma.ProjectWhereInput = user.role === 'CLIENT'
-        ? { assignedToId: user.id }
-        : {}
+    let where: Prisma.ProjectWhereInput = {}
+
+    if (user.role === 'CLIENT') {
+        where = { clientId: user.id }
+    } else if (user.role === 'EMPLOYEE') {
+        where = {
+            OR: [
+                { assignedToId: user.id },
+                { additionalAssignees: { some: { id: user.id } } }
+            ]
+        }
+    }
 
     const projects = await prisma.project.findMany({
         where,

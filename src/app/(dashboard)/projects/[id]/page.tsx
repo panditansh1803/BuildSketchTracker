@@ -11,150 +11,168 @@ import { SiteActivityFeed } from '@/components/projects/SiteActivityFeed'
 import { DownloadProjectPdf } from '@/components/projects/DownloadProjectPdf'
 import MapClientWrapper from '@/components/projects/MapClientWrapper'
 import { checkSlaCompliance } from '@/lib/brain'
+import { getCurrentUser } from '@/lib/auth'
 
 import { getProjectTimeStats } from '@/app/actions/time-tracking'
 import { ProjectTimeTracker } from '@/components/projects/ProjectTimeTracker'
 
-export default async function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params
+// Authenticate
+const user = await getCurrentUser()
+if (!user) return <div>Please log in</div>
 
-    // Run SLA Check on Load (Smart Protocol)
-    await checkSlaCompliance(id)
-
-    // Parallel Fetching
-    const [project, users, timeStats] = await Promise.all([
-        prisma.project.findUnique({
-            where: { id },
-            include: {
-                documents: true,
-                photos: true,
-                assignedTo: true,
-                history: {
-                    orderBy: { createdAt: 'desc' }
-                },
+// Parallel Fetching
+const [project, users, timeStats] = await Promise.all([
+    prisma.project.findUnique({
+        where: { id },
+        include: {
+            documents: true,
+            photos: true,
+            assignedTo: true,
+            additionalAssignees: true, // Needed for permission check
+            history: {
+                orderBy: { createdAt: 'desc' }
             },
-        }),
-        prisma.user.findMany({ select: { id: true, name: true } }),
-        getProjectTimeStats(id)
-    ])
+        },
+    }),
+    prisma.user.findMany({ select: { id: true, name: true, role: true } }), // Added role to selection for UI
+    getProjectTimeStats(id)
+])
 
-    if (!project) notFound()
+if (!project) notFound()
 
-    const historyEntries = project.history.map((h: any) => ({
-        id: h.id,
-        description: `${h.fieldName} changed from ${h.oldValue} to ${h.newValue}`,
-        date: h.createdAt,
-        userInitials: h.changedBy ? h.changedBy.substring(0, 2).toUpperCase() : '??'
-    }))
+// 🔒 Security: Strict Role-Based Access Control
+if (user.role === 'CLIENT') {
+    if (project.clientId !== user.id) {
+        return notFound() // or redirect to dashboard
+    }
+} else if (user.role === 'EMPLOYEE') {
+    const isAssigned = project.assignedToId === user.id
+    const isAdditional = project.additionalAssignees.some(u => u.id === user.id)
 
-    return (
-        <div className="space-y-8">
-            {/* Header Area */}
-            <div className="flex justify-between items-start">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-                    <p className="text-muted-foreground">ID: {project.projectId} • {project.stage}</p>
+    // Strict Isolation: Employees only see what they work on? 
+    // Spec says: "View only assigned projects". 
+    // Existing behavior might have been looser, but "Objective" says "Employees must NOT see ... unassigned client projects".
+    // So we enforce this.
+    if (!isAssigned && !isAdditional) {
+        return notFound()
+    }
+}
+
+const historyEntries = project.history.map((h: any) => ({
+    id: h.id,
+    description: `${h.fieldName} changed from ${h.oldValue} to ${h.newValue}`,
+    date: h.createdAt,
+    userInitials: h.changedBy ? h.changedBy.substring(0, 2).toUpperCase() : '??'
+}))
+
+return (
+    <div className="space-y-8">
+        {/* Header Area */}
+        <div className="flex justify-between items-start">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+                <p className="text-muted-foreground">ID: {project.projectId} • {project.stage}</p>
+            </div>
+            <div className="flex items-center gap-4">
+                <DownloadProjectPdf project={project} timeStats={timeStats} />
+                <div className="text-right hidden sm:block">
+                    <p className="text-2xl font-bold">{project.percentComplete}%</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Completion</p>
                 </div>
-                <div className="flex items-center gap-4">
-                    <DownloadProjectPdf project={project} timeStats={timeStats} />
-                    <div className="text-right hidden sm:block">
-                        <p className="text-2xl font-bold">{project.percentComplete}%</p>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider">Completion</p>
+                <ProjectForm project={project} users={users} />
+                <DeleteProjectButton projectId={project.id} projectName={project.name} />
+            </div>
+        </div>
+
+        {/* Row 2: Timeline, Time & Map */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="h-full">
+                <CardContent className="pt-6">
+                    <div className="mb-4">
+                        <h3 className="font-semibold mb-2">Project Progress</h3>
+                        <ProjectTimeline currentStage={project.stage} houseType={project.houseType} />
                     </div>
-                    <ProjectForm project={project} users={users} />
-                    <DeleteProjectButton projectId={project.id} projectName={project.name} />
-                </div>
+                </CardContent>
+            </Card>
+
+            <div className="h-full">
+                <ProjectTimeTracker
+                    projectId={project.id}
+                    totalMinutes={timeStats.totalMinutes}
+                    userStats={timeStats.userStats}
+                    hasActiveSession={timeStats.activeSession}
+                />
             </div>
 
-            {/* Row 2: Timeline, Time & Map */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <Card className="h-full">
-                    <CardContent className="pt-6">
-                        <div className="mb-4">
-                            <h3 className="font-semibold mb-2">Project Progress</h3>
-                            <ProjectTimeline currentStage={project.stage} houseType={project.houseType} />
+            <Card className="h-full overflow-hidden">
+                <div className="h-[300px] w-full relative">
+                    {project.latitude && project.longitude ? (
+                        <MapClientWrapper projects={[{
+                            id: project.id,
+                            name: project.name,
+                            latitude: project.latitude,
+                            longitude: project.longitude,
+                            status: project.status
+                        }]} />
+                    ) : (
+                        <div className="flex items-center justify-center h-full bg-muted text-muted-foreground">
+                            No Location Data Set
                         </div>
-                    </CardContent>
-                </Card>
-
-                <div className="h-full">
-                    <ProjectTimeTracker
-                        projectId={project.id}
-                        totalMinutes={timeStats.totalMinutes}
-                        userStats={timeStats.userStats}
-                        hasActiveSession={timeStats.activeSession}
-                    />
+                    )}
                 </div>
+            </Card>
+        </div>
 
-                <Card className="h-full overflow-hidden">
-                    <div className="h-[300px] w-full relative">
-                        {project.latitude && project.longitude ? (
-                            <MapClientWrapper projects={[{
-                                id: project.id,
-                                name: project.name,
-                                latitude: project.latitude,
-                                longitude: project.longitude,
-                                status: project.status
-                            }]} />
-                        ) : (
-                            <div className="flex items-center justify-center h-full bg-muted text-muted-foreground">
-                                No Location Data Set
-                            </div>
-                        )}
+        {/* Row 3: Design, Docs & Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left: Documents & Photos */}
+            <div className="lg:col-span-7">
+                <div className="mb-2">
+                    <h2 className="text-xl font-semibold tracking-tight">Project Design & Documentation</h2>
+                    <p className="text-sm text-muted-foreground">Official plans, designs, and site photos.</p>
+                </div>
+                <Tabs defaultValue="documents" className="h-[500px] flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                        <TabsList>
+                            <TabsTrigger value="documents">Design Docs</TabsTrigger>
+                            <TabsTrigger value="photos">Site Photos</TabsTrigger>
+                        </TabsList>
                     </div>
-                </Card>
+
+                    <div className="flex-1 overflow-hidden">
+                        <TabsContent value="documents" className="h-full mt-0">
+                            <Card className="h-full">
+                                <CardContent className="pt-6 h-full overflow-auto">
+                                    <DocumentList projectId={project.id} documents={project.documents} />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="photos" className="h-full mt-0">
+                            <Card className="h-full">
+                                <CardContent className="pt-6 h-full overflow-auto">
+                                    <PhotoGallery
+                                        projectId={project.id}
+                                        photos={project.photos}
+                                        houseType={project.houseType}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </div>
+                </Tabs>
             </div>
 
-            {/* Row 3: Design, Docs & Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                {/* Left: Documents & Photos */}
-                <div className="lg:col-span-7">
-                    <div className="mb-2">
-                        <h2 className="text-xl font-semibold tracking-tight">Project Design & Documentation</h2>
-                        <p className="text-sm text-muted-foreground">Official plans, designs, and site photos.</p>
-                    </div>
-                    <Tabs defaultValue="documents" className="h-[500px] flex flex-col">
-                        <div className="flex justify-between items-center mb-4">
-                            <TabsList>
-                                <TabsTrigger value="documents">Design Docs</TabsTrigger>
-                                <TabsTrigger value="photos">Site Photos</TabsTrigger>
-                            </TabsList>
-                        </div>
-
-                        <div className="flex-1 overflow-hidden">
-                            <TabsContent value="documents" className="h-full mt-0">
-                                <Card className="h-full">
-                                    <CardContent className="pt-6 h-full overflow-auto">
-                                        <DocumentList projectId={project.id} documents={project.documents} />
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                            <TabsContent value="photos" className="h-full mt-0">
-                                <Card className="h-full">
-                                    <CardContent className="pt-6 h-full overflow-auto">
-                                        <PhotoGallery
-                                            projectId={project.id}
-                                            photos={project.photos}
-                                            houseType={project.houseType}
-                                        />
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                        </div>
-                    </Tabs>
+            {/* Right: Site Activity Feed */}
+            <div className="lg:col-span-5">
+                <div className="mb-2">
+                    <h2 className="text-xl font-semibold tracking-tight">Activity Log</h2>
+                    <p className="text-sm text-muted-foreground">Recent updates and changes.</p>
                 </div>
-
-                {/* Right: Site Activity Feed */}
-                <div className="lg:col-span-5">
-                    <div className="mb-2">
-                        <h2 className="text-xl font-semibold tracking-tight">Activity Log</h2>
-                        <p className="text-sm text-muted-foreground">Recent updates and changes.</p>
-                    </div>
-                    <div className="h-[500px]">
-                        <SiteActivityFeed activities={historyEntries} />
-                    </div>
+                <div className="h-[500px]">
+                    <SiteActivityFeed activities={historyEntries} />
                 </div>
             </div>
-        </div >
-    )
+        </div>
+    </div >
+)
 }

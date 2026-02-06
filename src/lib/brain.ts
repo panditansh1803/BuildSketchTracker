@@ -22,6 +22,8 @@ export const ProjectUpdateSchema = z.object({
     targetFinish: z.coerce.date().optional(),
     actualFinish: z.coerce.date().nullable().optional(),
     assignedToId: z.string().nullable().optional(),
+    clientId: z.string().nullable().optional(), // Added for Client Support
+    additionalAssigneeIds: z.array(z.string()).optional(), // Added for Multi-Assignee
     latitude: z.number().optional(),  // Restored
     longitude: z.number().optional(), // Restored
     status: z.string().optional(),
@@ -243,6 +245,19 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
             changes.assignedToId = newData.assignedToId
             logChange('assignedToId', oldProject.assignedToId, newData.assignedToId)
         }
+
+        // F. Client Assignment
+        if (newData.clientId !== undefined && newData.clientId !== oldProject.clientId) {
+            changes.clientId = newData.clientId
+            logChange('clientId', oldProject.clientId, newData.clientId)
+        }
+
+        // G. Additional Assignees (Direct Set)
+        if (newData.additionalAssigneeIds !== undefined) {
+            changes.additionalAssignees = { set: newData.additionalAssigneeIds.map(id => ({ id })) }
+            // Note: Detailed logging omitted for brevity/performance on array
+        }
+
 
         // E. Status Automation (Delay Calculation)
         // Default to "On Track". Logic evaluates Delay days vs Status overrides.
