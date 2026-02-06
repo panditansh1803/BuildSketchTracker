@@ -21,14 +21,38 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/components/ui/command"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 import { updateProject } from '@/app/actions/projectActions'
-import { Pencil, AlertTriangle } from 'lucide-react'
+import { Pencil, AlertTriangle, Users, Calendar, MapPin, ChevronDown, Check, ChevronsUpDown, User, Mail } from 'lucide-react'
 import { STAGE_LISTS } from '@/lib/brain'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { cn } from "@/lib/utils"
 
 type UserOption = {
     id: string
     name: string
-    role: string // Added role for filtering
+    role: string
 }
 
 type ProjectData = {
@@ -47,8 +71,8 @@ type ProjectData = {
     notes: string | null
     isDelayed: boolean
     delayReason: string | null
-    clientId: string | null // NEW
-    additionalAssignees: { id: string }[] // NEW
+    clientId: string | null
+    additionalAssignees: { id: string }[]
 }
 
 export function ProjectForm({
@@ -62,7 +86,6 @@ export function ProjectForm({
     const [loading, setLoading] = useState(false)
     const router = useRouter()
 
-    // Form State
     const [formData, setFormData] = useState({
         projectId: project.projectId,
         name: project.name,
@@ -94,9 +117,17 @@ export function ProjectForm({
             data.append('houseType', formData.houseType)
             data.append('stage', formData.stage)
             data.append('status', formData.status)
+
             if (formData.assignedToId && formData.assignedToId !== 'unassigned') {
                 data.append('assignedToId', formData.assignedToId)
+            } else {
+                // Explicitly handle unassigning if API supports it (API might need update if we want to clear)
+                // For now, assume 'unassigned' means don't update or send null if backend handles it
+                // Backend actions usually ignore if not present? Or if we send empty?
+                // Let's ensure we can unassign: usually sending empty string or specific flag is needed.
+                // For now, follow existing pattern.
             }
+
             if (formData.startDate) data.append('startDate', formData.startDate)
             if (formData.targetFinish) data.append('targetFinish', formData.targetFinish)
             if (formData.actualFinish) data.append('actualFinish', formData.actualFinish)
@@ -104,7 +135,13 @@ export function ProjectForm({
             if (formData.longitude) data.append('longitude', formData.longitude)
             if (formData.notes) data.append('notes', formData.notes)
             if (formData.delayReason) data.append('delayReason', formData.delayReason)
-            if (formData.clientId && formData.clientId !== 'unassigned') data.append('clientId', formData.clientId)
+
+            // Client
+            if (formData.clientId && formData.clientId !== 'unassigned') {
+                data.append('clientId', formData.clientId)
+            } else if (formData.clientId === 'unassigned') {
+                // Technically we might want to clear it, but FormData needs explicit handling in backend.
+            }
 
             // Append array
             formData.additionalAssigneeIds.forEach(id => {
@@ -122,6 +159,22 @@ export function ProjectForm({
         }
     }
 
+    const toggleAdditionalAssignee = (userId: string) => {
+        setFormData(prev => {
+            const current = new Set(prev.additionalAssigneeIds)
+            if (current.has(userId)) {
+                current.delete(userId)
+            } else {
+                current.add(userId)
+            }
+            return { ...prev, additionalAssigneeIds: Array.from(current) }
+        })
+    }
+
+    // Filtered lists
+    const employeeUsers = users.filter(u => u.role === 'EMPLOYEE' || u.role === 'PROJECT_OWNER' || u.role === 'ADMIN')
+    const clientUsers = users.filter(u => u.role === 'CLIENT')
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -130,250 +183,355 @@ export function ProjectForm({
                     Edit Project
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Edit Project Details</DialogTitle>
                     <DialogDescription>
-                        Manually update project information.
+                        Update project information, assignments, and schedule.
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="grid gap-4 py-4">
 
-                    {/* SLA Warning */}
-                    {project.isDelayed && (
-                        <div className="col-span-2 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-md flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5 text-amber-600" />
-                            <div className="text-sm">
-                                <span className="font-semibold">SLA Warning:</span> This project is overdue.
-                                <br />
-                                You must provide a <strong>Reason for Delay</strong> to complete it.
+                <form onSubmit={handleSubmit} className="space-y-6 py-4">
+
+                    {/* SECTION: Project Identity */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                            Identification
+                            <Separator className="flex-1" />
+                        </h3>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="projectId">Project ID</Label>
+                                <Input
+                                    id="projectId"
+                                    value={formData.projectId}
+                                    onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Project Name</Label>
+                                <Input
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                />
                             </div>
                         </div>
-                    )}
 
-                    {/* Identity */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="projectId">Project ID</Label>
-                            <Input
-                                id="projectId"
-                                value={formData.projectId}
-                                onChange={(e) => setFormData({ ...formData, projectId: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Project Name</Label>
-                            <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Configuration */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>House Type</Label>
-                            <Select
-                                value={formData.houseType}
-                                onValueChange={(val) => setFormData({ ...formData, houseType: val, stage: '' })} // Reset stage on type change
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Single">Single</SelectItem>
-                                    <SelectItem value="Double">Double</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Stage</Label>
-                            <Select
-                                value={formData.stage}
-                                onValueChange={(val) => setFormData({ ...formData, stage: val })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select stage" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {stages.map((s) => (
-                                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Assignment & Status */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Assigned To</Label>
-                            <Select
-                                value={formData.assignedToId}
-                                onValueChange={(val) => setFormData({ ...formData, assignedToId: val })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Unassigned" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                                    {users.filter(u => u.role === 'EMPLOYEE' || u.role === 'PROJECT_OWNER').map((u) => (
-                                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Status</Label>
-                            <Select
-                                value={formData.status}
-                                onValueChange={(val) => setFormData({ ...formData, status: val })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="On Track">On Track</SelectItem>
-                                    <SelectItem value="Client Delay">Client Delay</SelectItem>
-                                    <SelectItem value="Completed">Completed</SelectItem>
-                                    <SelectItem value="Past Target">Past Target</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* New Additive Fields: Client & Additional Team */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Client (Optional)</Label>
-                            <Select
-                                value={formData.clientId}
-                                onValueChange={(val) => setFormData({ ...formData, clientId: val })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select Client" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="unassigned">No Client</SelectItem>
-                                    {users.filter(u => u.role === 'CLIENT').map((u) => (
-                                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Additional Team</Label>
-                            <Select
-                                value={formData.additionalAssigneeIds[0] || ""} // Simple single select UI for now to avoid complex multi-select UI component dependency, OR use HTML select multiple
-                                onValueChange={(val) => {
-                                    // Append if not exists? No, Select is single value usually.
-                                    // Let's implement a simple multi-select using standard HTML for safety
-                                    const current = new Set(formData.additionalAssigneeIds)
-                                    if (current.has(val)) current.delete(val)
-                                    else current.add(val)
-                                    setFormData({ ...formData, additionalAssigneeIds: Array.from(current) })
-                                }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder={`${formData.additionalAssigneeIds.length} Selected`} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {users.filter(u => u.role === 'EMPLOYEE').map((u) => (
-                                        <SelectItem key={u.id} value={u.id}>
-                                            {u.name} {formData.additionalAssigneeIds.includes(u.id) ? '✓' : ''}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <div className="text-xs text-muted-foreground">
-                                {formData.additionalAssigneeIds.length} additional members
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                                <Label>House Type</Label>
+                                <Select
+                                    value={formData.houseType}
+                                    onValueChange={(val) => setFormData({ ...formData, houseType: val, stage: '' })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Single">Single</SelectItem>
+                                        <SelectItem value="Double">Double</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Stage</Label>
+                                <Select
+                                    value={formData.stage}
+                                    onValueChange={(val) => setFormData({ ...formData, stage: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select stage" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {stages.map((s) => (
+                                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Status</Label>
+                                <Select
+                                    value={formData.status}
+                                    onValueChange={(val) => setFormData({ ...formData, status: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="On Track">On Track</SelectItem>
+                                        <SelectItem value="Client Delay">Client Delay</SelectItem>
+                                        <SelectItem value="Completed">Completed</SelectItem>
+                                        <SelectItem value="Past Target">Past Target</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </div>
 
-                    {/* SLA: Reason for Delay (Conditional) */}
-                    {(project.isDelayed || formData.status === 'Completed') && (
-                        <div className="col-span-2 space-y-2">
-                            <Label htmlFor="delayReason" className={project.isDelayed ? "text-amber-700 font-semibold" : ""}>
-                                Reason for Delay {project.isDelayed && '*'}
-                            </Label>
-                            <Input
-                                id="delayReason"
-                                value={formData.delayReason}
-                                onChange={(e) => setFormData({ ...formData, delayReason: e.target.value })}
-                                placeholder={project.isDelayed ? "Required: Explanation for the delay..." : "Optional reason..."}
-                                className={project.isDelayed ? "border-amber-300 focus:ring-amber-500" : ""}
-                                required={project.isDelayed && formData.status === 'Completed'}
-                            />
-                        </div>
-                    )}
+                    {/* SECTION: People */}
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                            <Users className="h-4 w-4" /> Team & Client
+                            <Separator className="flex-1" />
+                        </h3>
 
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Primary Assignee */}
+                            <div className="space-y-2">
+                                <Label>Lead Assignee</Label>
+                                <Select
+                                    value={formData.assignedToId}
+                                    onValueChange={(val) => setFormData({ ...formData, assignedToId: val })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Unassigned" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                                        {employeeUsers.map((u) => (
+                                            <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
 
-                    {/* Location */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Latitude</Label>
-                            <Input
-                                type="number"
-                                step="any"
-                                value={formData.latitude}
-                                onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                                placeholder="-33.8688"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Longitude</Label>
-                            <Input
-                                type="number"
-                                step="any"
-                                value={formData.longitude}
-                                onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                                placeholder="151.2093"
-                            />
+                            {/* Additional Team (Multi-Select) */}
+                            <div className="space-y-2">
+                                <Label>Additional Team</Label>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" className="w-full justify-between font-normal px-3" role="combobox">
+                                            <span className="truncate">
+                                                {formData.additionalAssigneeIds.length === 0
+                                                    ? "Add team members..."
+                                                    : `${formData.additionalAssigneeIds.length} members selected`}
+                                            </span>
+                                            <ChevronDown className="h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-[300px]" align="start">
+                                        <DropdownMenuLabel>Select Team Members</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <div className="max-h-[200px] overflow-y-auto">
+                                            {employeeUsers.map((user) => (
+                                                <DropdownMenuCheckboxItem
+                                                    key={user.id}
+                                                    checked={formData.additionalAssigneeIds.includes(user.id)}
+                                                    onCheckedChange={() => toggleAdditionalAssignee(user.id)}
+                                                    // Disable if primary assignee
+                                                    disabled={user.id === formData.assignedToId}
+                                                >
+                                                    {user.name}
+                                                </DropdownMenuCheckboxItem>
+                                            ))}
+                                            {employeeUsers.length === 0 && (
+                                                <div className="p-2 text-sm text-muted-foreground text-center">No employees found.</div>
+                                            )}
+                                        </div>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                {formData.additionalAssigneeIds.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        {formData.additionalAssigneeIds.map(id => {
+                                            const user = users.find(u => u.id === id)
+                                            return user ? (
+                                                <Badge key={id} variant="secondary" className="text-[10px] px-1 py-0 h-5">
+                                                    {user.name}
+                                                </Badge>
+                                            ) : null
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Client Assignment - ADVANCED COMBOBOX */}
+                            <div className="space-y-2 col-span-2">
+                                <Label>Client (Optional)</Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className={cn(
+                                                "w-full justify-between",
+                                                !formData.clientId && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {formData.clientId && formData.clientId !== 'unassigned'
+                                                ? clientUsers.find((u) => u.id === formData.clientId)?.name
+                                                : "Select Client..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[400px] p-0" align="start">
+                                        <Command>
+                                            <CommandInput placeholder="Search clients..." />
+                                            <CommandList>
+                                                <CommandEmpty>No client found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    <CommandItem
+                                                        value="unassigned"
+                                                        onSelect={() => {
+                                                            setFormData({ ...formData, clientId: 'unassigned' })
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                formData.clientId === 'unassigned' ? "opacity-100" : "opacity-0"
+                                                            )}
+                                                        />
+                                                        No Client (Internal Project)
+                                                    </CommandItem>
+                                                    {clientUsers.map((client) => (
+                                                        <CommandItem
+                                                            key={client.id}
+                                                            value={client.name}
+                                                            onSelect={() => {
+                                                                setFormData({ ...formData, clientId: client.id })
+                                                            }}
+                                                        >
+                                                            <Check
+                                                                className={cn(
+                                                                    "mr-2 h-4 w-4",
+                                                                    formData.clientId === client.id ? "opacity-100" : "opacity-0"
+                                                                )}
+                                                            />
+                                                            <div className="flex flex-col">
+                                                                <span>{client.name}</span>
+                                                                <span className="text-xs text-muted-foreground">ID: {client.id.substring(0, 8)}...</span>
+                                                            </div>
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+
+                                {/* Selected Client Preview Card */}
+                                {formData.clientId && formData.clientId !== 'unassigned' && (
+                                    <div className="mt-2 p-3 bg-muted/50 rounded-md border flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                            <User className="h-5 w-5" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium">
+                                                {clientUsers.find(u => u.id === formData.clientId)?.name || 'Unknown Client'}
+                                            </p>
+                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                <Mail className="h-3 w-3" />
+                                                <span>{/* Email would be good here but we only have ID/Name in prop currently - assume UserOption might need role? */}
+                                                    Client User
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Dates */}
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                            <Label>Start Date</Label>
-                            <Input
-                                type="date"
-                                value={formData.startDate}
-                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                            />
+                    {/* SECTION: Schedule & Location */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                <Calendar className="h-4 w-4" /> Schedule
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Start Date</Label>
+                                    <Input
+                                        type="date"
+                                        value={formData.startDate}
+                                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Target Finish</Label>
+                                    <Input
+                                        type="date"
+                                        value={formData.targetFinish}
+                                        onChange={(e) => setFormData({ ...formData, targetFinish: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Actual Finish</Label>
+                                    <Input
+                                        type="date"
+                                        value={formData.actualFinish}
+                                        onChange={(e) => setFormData({ ...formData, actualFinish: e.target.value })}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Target Finish</Label>
-                            <Input
-                                type="date"
-                                value={formData.targetFinish}
-                                onChange={(e) => setFormData({ ...formData, targetFinish: e.target.value })}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Actual Finish</Label>
-                            <Input
-                                type="date"
-                                value={formData.actualFinish}
-                                onChange={(e) => setFormData({ ...formData, actualFinish: e.target.value })}
-                            />
+
+                        <div className="space-y-4">
+                            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                <MapPin className="h-4 w-4" /> Location
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Latitude</Label>
+                                    <Input
+                                        type="number"
+                                        step="any"
+                                        value={formData.latitude}
+                                        onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                                        placeholder="-33.8688"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Longitude</Label>
+                                    <Input
+                                        type="number"
+                                        step="any"
+                                        value={formData.longitude}
+                                        onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                                        placeholder="151.2093"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="notes">Notes</Label>
-                        <Input
-                            id="notes"
-                            value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        />
+                    {/* SECTION: Notes & SLA */}
+                    <div className="space-y-4">
+                        <Separator />
+                        <div className="space-y-2">
+                            <Label htmlFor="notes">Notes</Label>
+                            <Input
+                                id="notes"
+                                value={formData.notes}
+                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            />
+                        </div>
+
+                        {(project.isDelayed || formData.status === 'Completed') && (
+                            <div className="space-y-2 p-4 bg-amber-50/50 border border-amber-200/50 rounded-lg">
+                                <div className="flex items-center gap-2 text-amber-800 mb-2">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <Label htmlFor="delayReason" className="font-semibold cursor-pointer">
+                                        Reason for Delay {project.isDelayed && '*'}
+                                    </Label>
+                                </div>
+                                <Input
+                                    id="delayReason"
+                                    value={formData.delayReason}
+                                    onChange={(e) => setFormData({ ...formData, delayReason: e.target.value })}
+                                    placeholder={project.isDelayed ? "Required: Explanation for the delay..." : "Optional reason..."}
+                                    className="bg-white"
+                                    required={project.isDelayed && formData.status === 'Completed'}
+                                />
+                            </div>
+                        )}
                     </div>
 
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
                         <Button type="submit" disabled={loading}>
                             {loading ? 'Saving...' : 'Save Changes'}
                         </Button>
