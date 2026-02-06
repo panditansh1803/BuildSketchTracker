@@ -26,6 +26,7 @@ export const ProjectUpdateSchema = z.object({
     // New Manual Client Fields
     clientName: z.string().nullable().optional(),
     clientRequirements: z.string().nullable().optional(),
+    clientDelayDays: z.number().int().optional(), // CEO Manual Delay
 
     additionalAssigneeIds: z.array(z.string()).optional(), // Added for Multi-Assignee
     latitude: z.number().optional(),  // Restored
@@ -49,16 +50,10 @@ export async function checkSlaCompliance(projectId: string) {
         if (project.status === 'Completed') return null
 
         const now = new Date()
-
-
-        // SLA Rule A: 24-Hour Monitor
-        // We use startDate as the baseline for "Project Age"
-
-
         const startTime = project.startDate
         const diffHours = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60)
 
-        // Rule A: 24-Hour Trigger
+        // Rule A: 24-Hour Monitor (Initial Delay Flag)
         if (diffHours > 24) {
             let needsUpdate = false
             const updates: any = {}
@@ -66,39 +61,49 @@ export async function checkSlaCompliance(projectId: string) {
             if (!project.isDelayed) {
                 updates.isDelayed = true
                 needsUpdate = true
+
+                // History
+                await tx.projectHistory.create({
+                    data: { projectId, changedBy: 'System (SLA)', fieldName: 'isDelayed', oldValue: 'false', newValue: 'true' }
+                })
             }
 
-            // Rule B: Rolling Deadline
-            // Calculate days past original target
-            // If originalTarget is in future, delayDays is 0?
-            // "Counter for how many days we are late".
-            // If now > originalTarget:
+            // Rule B: Rolling Deadline (SLA System Delay)
             const originalTarget = project.originalTarget
             const diffTime = now.getTime() - originalTarget.getTime()
-            const calculatedDelayDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+            const calculatedSystemDelay = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-            if (calculatedDelayDays > project.delayDays && calculatedDelayDays > 0) {
-                updates.delayDays = calculatedDelayDays
-                updates.targetFinish = new Date(originalTarget.getTime() + (calculatedDelayDays * 24 * 60 * 60 * 1000))
+            let newSystemDelay = project.delayDays
+
+            // Only increase system delay if we are actually past the target
+            if (calculatedSystemDelay > project.delayDays && calculatedSystemDelay > 0) {
+                newSystemDelay = calculatedSystemDelay
+                updates.delayDays = newSystemDelay
+                needsUpdate = true
+            }
+
+            // DYNAMIC SCHEDULING FORMULA:
+            // Final = Original + System(SLA) + Client(CEO)
+            const totalDelay = newSystemDelay + project.clientDelayDays
+
+            // Calculate new target base
+            const newTargetTime = originalTarget.getTime() + (totalDelay * 24 * 60 * 60 * 1000)
+            const newTargetDate = new Date(newTargetTime)
+
+            // Check if target actually changed from what is stored
+            if (newTargetDate.getTime() !== project.targetFinish.getTime()) {
+                updates.targetFinish = newTargetDate
                 needsUpdate = true
 
-                // History Log
                 await tx.projectHistory.create({
                     data: {
                         projectId,
-                        changedBy: 'System (SLA)',
+                        changedBy: 'System (Auto-Shift)',
                         fieldName: 'targetFinish',
                         oldValue: project.targetFinish.toISOString(),
-                        newValue: updates.targetFinish.toISOString(),
+                        newValue: newTargetDate.toISOString(),
                     }
                 })
-
-                // Also log delay status
-                if (!project.isDelayed) {
-                    await tx.projectHistory.create({
-                        data: { projectId, changedBy: 'System (SLA)', fieldName: 'isDelayed', oldValue: 'false', newValue: 'true' }
-                    })
-                }
             }
 
             if (needsUpdate) {
@@ -200,6 +205,26 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
             logChange('status', oldProject.status, newData.status)
         }
 
+        // Client Delay Logic (Values)
+        if (newData.clientDelayDays !== undefined && newData.clientDelayDays !== oldProject.clientDelayDays) {
+            changes.clientDelayDays = newData.clientDelayDays
+            logChange('clientDelayDays', oldProject.clientDelayDays, newData.clientDelayDays)
+
+            // DYNAMIC SCHEDULING TRIGGER
+            // Formulas: T_Final = T_Original + D_System + D_Client
+            const originalTarget = oldProject.originalTarget
+            const systemDelay = oldProject.delayDays // Don't change system delay here
+            const clientDelay = newData.clientDelayDays
+
+            const totalDelay = systemDelay + clientDelay
+            // Calculate new target base
+            const newTargetTime = originalTarget.getTime() + (totalDelay * 24 * 60 * 60 * 1000)
+            const newTargetDate = new Date(newTargetTime)
+
+            changes.targetFinish = newTargetDate
+            logChange('targetFinish (Auto-Shift)', oldProject.targetFinish.toISOString(), newTargetDate.toISOString())
+        }
+
         // C. Stage Automation
         if (newData.stage && newData.stage !== oldProject.stage) {
             changes.stage = newData.stage
@@ -236,10 +261,26 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
             changes.startDate = newData.startDate
             logChange('startDate', oldProject.startDate.toISOString(), newData.startDate.toISOString())
         }
-        if (newData.targetFinish && newData.targetFinish.getTime() !== oldProject.targetFinish.getTime()) {
-            changes.targetFinish = newData.targetFinish
-            logChange('targetFinish', oldProject.targetFinish.toISOString(), newData.targetFinish.toISOString())
+
+        // Target Finish Update (Manual Override vs Logic)
+        // If client delay triggered a change, we already set targetFinish logic above.
+        // If Manual update calculates same date, fine.
+        // But if Admin manually sets a date that CONTRADICTS logic?
+        // Spec says: "If CEO updates D... T_final must update". 
+        // Logic: Allow calculation to verify manual input? 
+        // Rule: Calculation Wins. If CEO changes Date, we might need to reverse calc delay? 
+        // For now, simplify: Date is result of delays. Don't let users edit Target Finish directly if logic active?
+        // Allow strict logic. If newTarget set by logic, ignore manual input if different? 
+        // Let's assume Form Logic dictates. We prioritize the calculated value if delay changed.
+
+        if (newData.targetFinish && !changes.targetFinish) {
+            // Only process manual date change if we didn't just auto-calculate it
+            if (newData.targetFinish.getTime() !== oldProject.targetFinish.getTime()) {
+                changes.targetFinish = newData.targetFinish
+                logChange('targetFinish', oldProject.targetFinish.toISOString(), newData.targetFinish.toISOString())
+            }
         }
+
 
         // Manual Actual Finish Override
         if (newData.actualFinish !== undefined) {

@@ -73,11 +73,16 @@ export default async function Dashboard() {
         ? activeProjects.reduce((acc, p) => acc + p.percentComplete, 0) / activeProjects.length
         : 0
 
+    const totalClients = user.role === 'ADMIN'
+        ? await prisma.user.count({ where: { role: 'CLIENT' } })
+        : 0
+
     const stats = {
         active: activeProjects.length,
         delayed: delayedProjects.length,
         completed: projects.filter(p => p.status === 'Completed').length,
-        avgProgress
+        avgProgress,
+        totalClients // Added
     }
 
     // 2. Pie Chart Data

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import { updateProjectBrain, ProjectUpdateSchema } from '@/lib/brain'
 import { Prisma } from '@prisma/client'
 import { deleteFile } from '@/lib/storage'
+import { getCurrentUser } from '@/lib/auth'
 import { z } from 'zod'
 
 // Schema for Create Project
@@ -18,6 +19,12 @@ const CreateProjectSchema = z.object({
 })
 
 export async function createProject(formData: FormData) {
+    // 1. Auth Check (STRICT CEO ONLY)
+    const user = await getCurrentUser()
+    if (!user || user.role !== 'ADMIN') {
+        throw new Error('Unauthorized: Only Admin/CEO can create projects.')
+    }
+
     const rawData = {
         projectId: formData.get('projectId'),
         name: formData.get('name'),
@@ -31,20 +38,8 @@ export async function createProject(formData: FormData) {
     }
     const { projectId, name, houseType, targetFinish } = val.data
 
-    // Mock Auth for Creation
-    let owner = await prisma.user.findFirst()
-    if (!owner) {
-        // Fallback if seed failed or empty
-        owner = await prisma.user.create({
-            data: { email: 'admin@buildsketch.com', name: 'Admin', role: 'ADMIN' }
-        })
-    }
-
     // Default to first stage
     const initialStage = 'Project Setup'
-    // Hack: We need percent for creation. fetch or hardcode.
-    // Spec doesn't strictly say logic must be in create, but "updateProject" logic is strict.
-    // We'll fetch 
     const stageConfig = await prisma.stageConfig.findUnique({
         where: { houseType_stageName: { houseType, stageName: initialStage } }
     })
@@ -59,8 +54,8 @@ export async function createProject(formData: FormData) {
             percentComplete,
             targetFinish,
             originalTarget: targetFinish, // SLA Baseline
-            startDate: new Date(), // Added as per requirement
-            createdById: owner.id,
+            startDate: new Date(),
+            createdById: user.id, // Use actual user ID
             status: 'On Track'
         }
     })
@@ -71,17 +66,17 @@ export async function createProject(formData: FormData) {
 }
 
 export async function updateProject(projectId: string, formData: FormData) {
-    // 1. Extract & Zod Parse (Validation Rule A)
-    // We map FormData to our Zod Schema structure
+    // 0. Auth & Role Check
+    const user = await getCurrentUser()
+    if (!user) throw new Error('User not found')
+
+    // 1. Extract & Zod Parse
     const rawData: Record<string, any> = {}
 
-    // Explicit mapping to avoid 'any' if possible, or iterative
-    // Explicit mapping to avoid 'any' if possible, or iterative
-    const keys = ['stage', 'status', 'address', 'latitude', 'longitude', 'houseType', 'assignedToId', 'clientId', 'targetFinish', 'actualFinish', 'notes', 'delayReason', 'clientName', 'clientRequirements']
+    // Keys that everyone MIGHT be able to send (but stripped later if unauthorized)
+    const keys = ['stage', 'status', 'address', 'latitude', 'longitude', 'houseType', 'assignedToId', 'clientId', 'targetFinish', 'actualFinish', 'notes', 'delayReason', 'clientName', 'clientRequirements', 'clientDelayDays']
     keys.forEach(k => {
         const v = formData.get(k)
-        // Allow empty string to signify 'clear' for text fields (clientName, etc)
-        // Check for 'unassigned' explicitly regardless
         if (v !== null) {
             if (v === 'unassigned' || v === '') {
                 rawData[k] = null
@@ -91,18 +86,43 @@ export async function updateProject(projectId: string, formData: FormData) {
         }
     })
 
-    // Special handling for Arrays (Multi-Select)
-    // Multi-select inputs usually append multiple values for the same key 'additionalAssignees'
+    // Arrays
     const additionalAssignees = formData.getAll('additionalAssignees')
     if (additionalAssignees.length > 0) {
-        // filter out empty strings
         const cleanAssignees = additionalAssignees.map(v => v.toString()).filter(v => v !== '')
         if (cleanAssignees.length > 0) {
             rawData.additionalAssigneeIds = cleanAssignees
         }
     }
 
-    // Handle lat/lng coercion if string
+    // Coerce clientDelayDays
+    if (rawData.clientDelayDays) rawData.clientDelayDays = parseInt(rawData.clientDelayDays)
+
+
+    // 2. STRICT SECURITY FILTER (RBAC)
+    // If NOT Admin, remove restricted fields from the payload.
+    // They cannot update assignment, dates (Target), client details.
+    if (user.role !== 'ADMIN') {
+        const RESTRICTED_FIELDS = [
+            'assignedToId',
+            'clientId',
+            'clientName',
+            'clientRequirements',
+            'clientDelayDays',
+            'targetFinish', // Calculated field, never manual for employees
+            'projectId',    // ID is immutable usually anyway
+            'name',         // Project Name
+            'additionalAssigneeIds'
+        ]
+
+        RESTRICTED_FIELDS.forEach(field => {
+            if (rawData[field] !== undefined) {
+                console.warn(`[Security] Unauthorized edit attempt by ${user.name} on field: ${field}`)
+                delete rawData[field]
+            }
+        })
+    }
+
     const val = ProjectUpdateSchema.safeParse(rawData)
 
     if (!val.success) {
@@ -110,11 +130,7 @@ export async function updateProject(projectId: string, formData: FormData) {
         throw new Error("Validation Failed")
     }
 
-    // Mock Auth
-    const user = await prisma.user.findFirst()
-    if (!user) throw new Error('User not found')
-
-    // 2. Call Brain (Transactional Rule B, C, D, E)
+    // 3. Call Brain
     await updateProjectBrain(projectId, val.data, user.id, user.name)
 
     revalidatePath(`/projects/${projectId}`)

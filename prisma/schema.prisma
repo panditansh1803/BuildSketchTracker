@@ -78,6 +78,7 @@ model Project {
   delayReason    String?   // Mandatory if isDelayed is true
   originalTarget DateTime  @default(now()) // Baseline for delay calculation
   delayDays      Int       @default(0)
+  clientDelayDays Int      @default(0) // Manual "CEO" Delay (Forward-Shift)
 
   // V2 Location Support (Restored)
   latitude        Float?

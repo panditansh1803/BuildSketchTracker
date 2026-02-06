@@ -82,7 +82,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
                         <p className="text-2xl font-bold">{project.percentComplete}%</p>
                         <p className="text-xs text-muted-foreground uppercase tracking-wider">Completion</p>
                     </div>
-                    <ProjectForm project={project} users={users} />
+                    <ProjectForm project={project} users={users} currentUserRole={user.role} />
                     <DeleteProjectButton projectId={project.id} projectName={project.name} />
                 </div>
             </div>
