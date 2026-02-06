@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -288,16 +289,18 @@ function ManageAccessDialog({ client, allEmployees }: { client: any, allEmployee
                     {/* Add Area */}
                     <div className="flex items-center gap-2">
                         <div className="flex-1">
-                            <select
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                value={selectedEmp}
-                                onChange={e => setSelectedEmp(e.target.value)}
-                            >
-                                <option value="">Select Employee...</option>
-                                {availableEmployees.map(e => (
-                                    <option key={e.id} value={e.id}>{e.name}</option>
-                                ))}
-                            </select>
+                            <Select value={selectedEmp} onValueChange={setSelectedEmp}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Employee..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableEmployees.map(e => (
+                                        <SelectItem key={e.id} value={e.id}>
+                                            {e.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                         <Button onClick={handleAdd} disabled={!selectedEmp} size="sm">Add</Button>
                     </div>
