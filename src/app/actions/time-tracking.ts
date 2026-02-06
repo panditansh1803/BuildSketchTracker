@@ -151,7 +151,9 @@ export async function getProjectTimeStats(projectId: string) {
         totalMinutes += duration
 
         if (!userStats[log.userId]) {
-            userStats[log.userId] = { name: log.user.name, minutes: 0 }
+            // Safety: log.user might be null if referential integrity broke somehow
+            const userName = log.user?.name || 'Unknown User'
+            userStats[log.userId] = { name: userName, minutes: 0 }
         }
         userStats[log.userId].minutes += duration
     }

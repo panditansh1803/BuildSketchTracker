@@ -80,9 +80,10 @@ export async function updateProject(projectId: string, formData: FormData) {
     const keys = ['stage', 'status', 'address', 'latitude', 'longitude', 'houseType', 'assignedToId', 'clientId', 'targetFinish', 'actualFinish', 'notes', 'delayReason', 'clientName', 'clientRequirements']
     keys.forEach(k => {
         const v = formData.get(k)
-        if (v !== null && v !== '') {
-            // Handle 'unassigned' signal
-            if (v === 'unassigned') {
+        // Allow empty string to signify 'clear' for text fields (clientName, etc)
+        // Check for 'unassigned' explicitly regardless
+        if (v !== null) {
+            if (v === 'unassigned' || v === '') {
                 rawData[k] = null
             } else {
                 rawData[k] = v
