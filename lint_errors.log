@@ -1,0 +1,302 @@
+
+C:\BuildSketchTracker\src\app\(dashboard)\dashboard\page.tsx
+   1:10  warning  'seedStages' is defined but never used             @typescript-eslint/no-unused-vars
+   3:10  warning  'Button' is defined but never used                 @typescript-eslint/no-unused-vars
+  10:10  warning  'Plus' is defined but never used                   @typescript-eslint/no-unused-vars
+  11:8   warning  'Link' is defined but never used                   @typescript-eslint/no-unused-vars
+  67:11  warning  'statusCounts' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\app\(dashboard)\kanban\page.tsx
+  4:10  warning  'Prisma' is defined but never used         @typescript-eslint/no-unused-vars
+  7:11  warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\app\(dashboard)\projects\[id]\page.tsx
+  178:0  error  Parsing error: Declaration or statement expected
+
+C:\BuildSketchTracker\src\app\(dashboard)\projects\new\page.tsx
+  9:10  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\app\(dashboard)\timeline\page.tsx
+  6:11  warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\app\actions\document.ts
+  28:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\app\actions\photo.ts
+  41:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\app\actions\projectActions.ts
+    7:10  warning  'Prisma' is defined but never used           @typescript-eslint/no-unused-vars
+    8:10  warning  'deleteFile' is defined but never used       @typescript-eslint/no-unused-vars
+   76:35  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  126:15  warning  'docs' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  127:15  warning  'photos' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\app\actions\statsActions.ts
+  69:31  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\app\actions\team.ts
+    5:10  warning  'redirect' is defined but never used      @typescript-eslint/no-unused-vars
+  219:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\app\auth\callback\route.ts
+  15:35  warning  'hash' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  99:13  error    'errorMessage' is never reassigned. Use 'const' instead  prefer-const
+  99:13  warning  'errorMessage' is assigned a value but never used        @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\app\login\page.tsx
+  39:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  64:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\app\verify-env\page.tsx
+   6:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  13:28  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:29  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\components\DocumentList.tsx
+  24:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  30:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\components\PhotoGallery.tsx
+   8:27  warning  'ImageIcon' is defined but never used  @typescript-eslint/no-unused-vars
+  41:18  warning  'e' is defined but never used          @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\ProjectMap.tsx
+  6:10  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\ProjectUpdateForm.tsx
+  4:10  warning  'Button' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\admin\UserWorkLog.tsx
+  17:10  warning  'Select' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  17:18  warning  'SelectContent' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  17:33  warning  'SelectItem' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  17:45  warning  'SelectTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  17:60  warning  'SelectValue' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  41:29  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  42:13  error    Error: Cannot access variable before it is declared
+
+`calculateStats` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+C:\BuildSketchTracker\src\components\admin\UserWorkLog.tsx:42:13
+  40 |             // But Prisma usually handles this. Let's ensure types.
+  41 |             setLogs(data as any); // Casting for safety with serialized dates
+> 42 |             calculateStats(data as any);
+     |             ^^^^^^^^^^^^^^ `calculateStats` accessed before it is declared
+  43 |         }
+  44 |         fetchLogs()
+  45 |     }, [])
+
+C:\BuildSketchTracker\src\components\admin\UserWorkLog.tsx:47:5
+  45 |     }, [])
+  46 |
+> 47 |     const calculateStats = (data: WorkLog[]) => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 48 |         const totalMinutes = data.reduce((acc, log) => acc + (log.duration || 0), 0)
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 49 |         const active = data.filter(l => !l.endTime).length
+     …
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 56 |         })
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 57 |     }
+     | ^^^^^^ `calculateStats` is declared here
+  58 |
+  59 |     const filteredLogs = logs.filter(log =>
+  60 |         log.user.name.toLowerCase().includes(filter.toLowerCase()) ||  react-hooks/immutability
+  42:36  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\components\dashboard\StatusPieChart.tsx
+  11:87  warning  'index' is defined but never used         @typescript-eslint/no-unused-vars
+  11:96  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\components\dashboard\SummaryCards.tsx
+  2:33  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  2:47  warning  'Clock' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\projects\DeleteProjectButton.tsx
+  12:11  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\projects\DownloadProjectPdf.tsx
+   82:32  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  108:32  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  129:31  warning  'url' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  135:32  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\components\projects\ProjectLocationMap.tsx
+  21:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\BuildSketchTracker\src\components\projects\ProjectLocationMap.tsx:21:9
+  19 |
+  20 |     useEffect(() => {
+> 21 |         setIsMounted(true)
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  22 |         // Fix for default marker icon in Leaflet + Next.js
+  23 |         const icon = L.icon({
+  24 |             iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',  react-hooks/set-state-in-effect
+
+C:\BuildSketchTracker\src\components\projects\ProjectTable.tsx
+  13:10  warning  'calculateDelayDays' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\projects\ProjectTimeTracker.tsx
+  38:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  50:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:23  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\components\projects\ProjectTimeline.tsx
+  18:13  error  Error: Cannot reassign variable after render completes
+
+Reassigning `foundCurrent` after render has completed can cause inconsistent behavior on subsequent renders. Consider using state instead.
+
+C:\BuildSketchTracker\src\components\projects\ProjectTimeline.tsx:18:13
+  16 |     const stages: Stage[] = stagesList.map(name => {
+  17 |         if (name === currentStage) {
+> 18 |             foundCurrent = true
+     |             ^^^^^^^^^^^^ Cannot reassign `foundCurrent` after render completes
+  19 |             return { name, percent: 0, status: 'current' }
+  20 |         }
+  21 |         return { name, percent: 0, status: foundCurrent ? 'upcoming' : 'completed' }  react-hooks/immutability
+
+C:\BuildSketchTracker\src\components\team\EmployeeCard.tsx
+  6:23  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  6:37  warning  'Clock' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\team\UserManagementPanel.tsx
+  80:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\components\time-tracking\TimeTracker.tsx
+  21:10  warning  'Clock' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  21:17  warning  'StopCircle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  26:56  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  27:46  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  33:9   error    Error: Cannot access variable before it is declared
+
+`loadSession` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+C:\BuildSketchTracker\src\components\time-tracking\TimeTracker.tsx:33:9
+  31 |
+  32 |     useEffect(() => {
+> 33 |         loadSession()
+     |         ^^^^^^^^^^^ `loadSession` accessed before it is declared
+  34 |         loadProjects()
+  35 |     }, [])
+  36 |
+
+C:\BuildSketchTracker\src\components\time-tracking\TimeTracker.tsx:53:5
+  51 |     }, [activeSession])
+  52 |
+> 53 |     const loadSession = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 54 |         try {
+     | ^^^^^^^^^^^^^
+> 55 |             const session = await getActiveSession()
+     | ^^^^^^^^^^^^^
+> 56 |             setActiveSession(session)
+     | ^^^^^^^^^^^^^
+> 57 |         } catch (error) {
+     | ^^^^^^^^^^^^^
+> 58 |             console.error('Failed to load session:', error)
+     | ^^^^^^^^^^^^^
+> 59 |         }
+     | ^^^^^^^^^^^^^
+> 60 |     }
+     | ^^^^^^ `loadSession` is declared here
+  61 |
+  62 |     const loadProjects = async () => {
+  63 |         try {         react-hooks/immutability
+  34:9   error    Error: Cannot access variable before it is declared
+
+`loadProjects` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+C:\BuildSketchTracker\src\components\time-tracking\TimeTracker.tsx:34:9
+  32 |     useEffect(() => {
+  33 |         loadSession()
+> 34 |         loadProjects()
+     |         ^^^^^^^^^^^^ `loadProjects` accessed before it is declared
+  35 |     }, [])
+  36 |
+  37 |     useEffect(() => {
+
+C:\BuildSketchTracker\src\components\time-tracking\TimeTracker.tsx:62:5
+  60 |     }
+  61 |
+> 62 |     const loadProjects = async () => {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 63 |         try {
+     | ^^^^^^^^^^^^^
+> 64 |             const data = await getProjectsForDropdown()
+     | ^^^^^^^^^^^^^
+> 65 |             setProjects(data)
+     | ^^^^^^^^^^^^^
+> 66 |         } catch (error) {
+     | ^^^^^^^^^^^^^
+> 67 |             console.error('Failed to load projects:', error)
+     | ^^^^^^^^^^^^^
+> 68 |         }
+     | ^^^^^^^^^^^^^
+> 69 |     }
+     | ^^^^^^ `loadProjects` is declared here
+  70 |
+  71 |     const handleClockIn = async () => {
+  72 |         try {  react-hooks/immutability
+
+C:\BuildSketchTracker\src\components\timeline\GanttChart.tsx
+    4:58  warning  'endOfWeek' is defined but never used                    @typescript-eslint/no-unused-vars
+    7:37  warning  'Calendar' is defined but never used                     @typescript-eslint/no-unused-vars
+   92:33  error    'visibleStart' is never reassigned. Use 'const' instead  prefer-const
+   92:33  warning  'visibleStart' is assigned a value but never used        @typescript-eslint/no-unused-vars
+   93:33  error    'visibleEnd' is never reassigned. Use 'const' instead    prefer-const
+   93:33  warning  'visibleEnd' is assigned a value but never used          @typescript-eslint/no-unused-vars
+  101:35  warning  'totalDays' is assigned a value but never used           @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\ui\animated-shader-background.tsx
+  116:9   error    'lastTime' is never reassigned. Use 'const' instead  prefer-const
+  116:9   warning  'lastTime' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  120:22  warning  'time' is defined but never used                     @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\components\ui\background-paper-shaders.tsx
+  75:13  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\BuildSketchTracker\src\components\ui\background-paper-shaders.tsx:75:13
+  73 |     useFrame((state) => {
+  74 |         if (mesh.current) {
+> 75 |             uniforms.time.value = state.clock.elapsedTime
+     |             ^^^^^^^^^^^^^ `uniforms` cannot be modified
+  76 |             uniforms.intensity.value = 1.0 + Math.sin(state.clock.elapsedTime * 2) * 0.2
+  77 |         }
+  78 |     })  react-hooks/immutability
+
+C:\BuildSketchTracker\src\lib\brain.ts
+   60:28  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:39  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  339:36  warning  'houseType' is defined but never used     @typescript-eslint/no-unused-vars
+  339:55  warning  'stage' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\lib\supabase\server.ts
+  15:59  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  21:30  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  25:47  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  28:30  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\src\lib\utils.ts
+  9:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\BuildSketchTracker\src\utils\supabase\middleware.ts
+  20:58  warning  'options' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\BuildSketchTracker\verify-connectivity.ts
+  27:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:25  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 90 problems (43 errors, 47 warnings)
+  4 errors and 0 warnings potentially fixable with the `--fix` option.
+
