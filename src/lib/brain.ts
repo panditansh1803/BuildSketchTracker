@@ -23,6 +23,10 @@ export const ProjectUpdateSchema = z.object({
     actualFinish: z.coerce.date().nullable().optional(),
     assignedToId: z.string().nullable().optional(),
     clientId: z.string().nullable().optional(), // Added for Client Support
+    // New Manual Client Fields
+    clientName: z.string().nullable().optional(),
+    clientRequirements: z.string().nullable().optional(),
+
     additionalAssigneeIds: z.array(z.string()).optional(), // Added for Multi-Assignee
     latitude: z.number().optional(),  // Restored
     longitude: z.number().optional(), // Restored
@@ -166,13 +170,22 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
         if (newData.houseType !== undefined && newData.houseType !== oldProject.houseType) {
             changes.houseType = newData.houseType
             logChange('houseType', oldProject.houseType, newData.houseType)
-            // Note: Changing houseType might require stage re-validation, usually handled by subsequent stage update or implicit check
         }
 
         // B. General Fields
         if (newData.notes !== undefined && newData.notes !== oldProject.notes) {
             changes.notes = newData.notes
             logChange('notes', oldProject.notes, newData.notes)
+        }
+
+        // Manual Client Details
+        if (newData.clientName !== undefined && newData.clientName !== oldProject.clientName) {
+            changes.clientName = newData.clientName
+            logChange('clientName', oldProject.clientName, newData.clientName)
+        }
+        if (newData.clientRequirements !== undefined && newData.clientRequirements !== oldProject.clientRequirements) {
+            changes.clientRequirements = newData.clientRequirements
+            logChange('clientRequirements', oldProject.clientRequirements, newData.clientRequirements)
         }
 
         // SLA: Delay Reason update
@@ -192,7 +205,7 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
             changes.stage = newData.stage
             logChange('stage', oldProject.stage, newData.stage)
 
-            // Dynamic Stage Config Lookup (Spec Requirement)
+            // Dynamic Stage Config Lookup
             const currentHouseType = changes.houseType || oldProject.houseType
             const stageConfig = await tx.stageConfig.findUnique({
                 where: {
@@ -230,7 +243,6 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
 
         // Manual Actual Finish Override
         if (newData.actualFinish !== undefined) {
-            // Handle null or date
             const oldTime = oldProject.actualFinish?.getTime()
             const newTime = newData.actualFinish?.getTime()
 
@@ -255,8 +267,8 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
         // G. Additional Assignees (Direct Set)
         if (newData.additionalAssigneeIds !== undefined) {
             changes.additionalAssignees = { set: newData.additionalAssigneeIds.map(id => ({ id })) }
-            // Note: Detailed logging omitted for brevity/performance on array
         }
+
 
 
         // E. Status Automation (Delay Calculation)

@@ -77,7 +77,7 @@ export async function updateProject(projectId: string, formData: FormData) {
 
     // Explicit mapping to avoid 'any' if possible, or iterative
     // Explicit mapping to avoid 'any' if possible, or iterative
-    const keys = ['stage', 'status', 'address', 'latitude', 'longitude', 'houseType', 'assignedToId', 'clientId', 'targetFinish', 'actualFinish', 'notes', 'delayReason']
+    const keys = ['stage', 'status', 'address', 'latitude', 'longitude', 'houseType', 'assignedToId', 'clientId', 'targetFinish', 'actualFinish', 'notes', 'delayReason', 'clientName', 'clientRequirements']
     keys.forEach(k => {
         const v = formData.get(k)
         if (v !== null && v !== '') rawData[k] = v

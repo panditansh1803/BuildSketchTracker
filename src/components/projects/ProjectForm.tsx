@@ -42,6 +42,9 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+
 import { updateProject } from '@/app/actions/projectActions'
 import { Pencil, AlertTriangle, Users, Calendar, MapPin, ChevronDown, Check, ChevronsUpDown, User, Mail } from 'lucide-react'
 import { STAGE_LISTS } from '@/lib/brain'
@@ -72,8 +75,11 @@ type ProjectData = {
     isDelayed: boolean
     delayReason: string | null
     clientId: string | null
+    clientName: string | null
+    clientRequirements: string | null
     additionalAssignees: { id: string }[]
 }
+
 
 export function ProjectForm({
     project,
@@ -101,8 +107,11 @@ export function ProjectForm({
         notes: project.notes || '',
         delayReason: project.delayReason || '',
         clientId: project.clientId || 'unassigned',
+        clientName: project.clientName || '',
+        clientRequirements: project.clientRequirements || '',
         additionalAssigneeIds: project.additionalAssignees?.map(u => u.id) || [] as string[]
     })
+
 
     const stages = STAGE_LISTS[formData.houseType as keyof typeof STAGE_LISTS] || STAGE_LISTS.Single
 
@@ -139,9 +148,10 @@ export function ProjectForm({
             // Client
             if (formData.clientId && formData.clientId !== 'unassigned') {
                 data.append('clientId', formData.clientId)
-            } else if (formData.clientId === 'unassigned') {
-                // Technically we might want to clear it, but FormData needs explicit handling in backend.
             }
+            if (formData.clientName) data.append('clientName', formData.clientName)
+            if (formData.clientRequirements) data.append('clientRequirements', formData.clientRequirements)
+
 
             // Append array
             formData.additionalAssigneeIds.forEach(id => {
@@ -347,91 +357,128 @@ export function ProjectForm({
                                 )}
                             </div>
 
-                            {/* Client Assignment - ADVANCED COMBOBOX */}
-                            <div className="space-y-2 col-span-2">
-                                <Label>Client (Optional)</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            role="combobox"
-                                            className={cn(
-                                                "w-full justify-between",
-                                                !formData.clientId && "text-muted-foreground"
-                                            )}
-                                        >
-                                            {formData.clientId && formData.clientId !== 'unassigned'
-                                                ? clientUsers.find((u) => u.id === formData.clientId)?.name
-                                                : "Select Client..."}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[400px] p-0" align="start">
-                                        <Command>
-                                            <CommandInput placeholder="Search clients..." />
-                                            <CommandList>
-                                                <CommandEmpty>No client found.</CommandEmpty>
-                                                <CommandGroup>
-                                                    <CommandItem
-                                                        value="unassigned"
-                                                        onSelect={() => {
-                                                            setFormData({ ...formData, clientId: 'unassigned' })
-                                                        }}
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                "mr-2 h-4 w-4",
-                                                                formData.clientId === 'unassigned' ? "opacity-100" : "opacity-0"
-                                                            )}
-                                                        />
-                                                        No Client (Internal Project)
-                                                    </CommandItem>
-                                                    {clientUsers.map((client) => (
-                                                        <CommandItem
-                                                            key={client.id}
-                                                            value={client.name}
-                                                            onSelect={() => {
-                                                                setFormData({ ...formData, clientId: client.id })
-                                                            }}
-                                                        >
-                                                            <Check
-                                                                className={cn(
-                                                                    "mr-2 h-4 w-4",
-                                                                    formData.clientId === client.id ? "opacity-100" : "opacity-0"
-                                                                )}
-                                                            />
-                                                            <div className="flex flex-col">
-                                                                <span>{client.name}</span>
-                                                                <span className="text-xs text-muted-foreground">ID: {client.id.substring(0, 8)}...</span>
-                                                            </div>
-                                                        </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </CommandList>
-                                        </Command>
-                                    </PopoverContent>
-                                </Popover>
+                            {/* Client Assignment - TABBED INTERFACE */}
+                            <div className="col-span-2 space-y-2">
+                                <Label>Client Management</Label>
+                                <Tabs defaultValue={formData.clientId && formData.clientId !== 'unassigned' ? "user" : "manual"} className="w-full">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="user">Registered User</TabsTrigger>
+                                        <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+                                    </TabsList>
 
-                                {/* Selected Client Preview Card */}
-                                {formData.clientId && formData.clientId !== 'unassigned' && (
-                                    <div className="mt-2 p-3 bg-muted/50 rounded-md border flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                            <User className="h-5 w-5" />
+                                    {/* TAB: REGISTERED USER */}
+                                    <TabsContent value="user" className="space-y-2">
+                                        <div className="flex flex-col space-y-2">
+                                            <Label className="text-xs text-muted-foreground">Select a user who can log in</Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant="outline"
+                                                        role="combobox"
+                                                        className={cn(
+                                                            "w-full justify-between",
+                                                            !formData.clientId && "text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        {formData.clientId && formData.clientId !== 'unassigned'
+                                                            ? clientUsers.find((u) => u.id === formData.clientId)?.name
+                                                            : "Select Client..."}
+                                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-[400px] p-0" align="start">
+                                                    <Command>
+                                                        <CommandInput placeholder="Search clients..." />
+                                                        <CommandList>
+                                                            <CommandEmpty>No client found.</CommandEmpty>
+                                                            <CommandGroup>
+                                                                <CommandItem
+                                                                    value="unassigned"
+                                                                    onSelect={() => {
+                                                                        setFormData({ ...formData, clientId: 'unassigned' })
+                                                                    }}
+                                                                >
+                                                                    <Check className={cn("mr-2 h-4 w-4", formData.clientId === 'unassigned' ? "opacity-100" : "opacity-0")} />
+                                                                    No Client (Internal)
+                                                                </CommandItem>
+                                                                {clientUsers.map((client) => (
+                                                                    <CommandItem
+                                                                        key={client.id}
+                                                                        value={client.name}
+                                                                        onSelect={() => {
+                                                                            setFormData({ ...formData, clientId: client.id, clientName: '' }) // Clear manual name if user selected
+                                                                        }}
+                                                                    >
+                                                                        <Check className={cn("mr-2 h-4 w-4", formData.clientId === client.id ? "opacity-100" : "opacity-0")} />
+                                                                        <div className="flex flex-col">
+                                                                            <span>{client.name}</span>
+                                                                            <span className="text-xs text-muted-foreground">ID: {client.id.substring(0, 8)}...</span>
+                                                                        </div>
+                                                                    </CommandItem>
+                                                                ))}
+                                                            </CommandGroup>
+                                                        </CommandList>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+
+                                            {/* Registered User Preview */}
+                                            {formData.clientId && formData.clientId !== 'unassigned' && (
+                                                <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-md flex items-center gap-3">
+                                                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                                        <User className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-blue-900">
+                                                            {clientUsers.find(u => u.id === formData.clientId)?.name}
+                                                        </p>
+                                                        <p className="text-xs text-blue-700">Registered Account</p>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm font-medium">
-                                                {clientUsers.find(u => u.id === formData.clientId)?.name || 'Unknown Client'}
-                                            </p>
-                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                                <Mail className="h-3 w-3" />
-                                                <span>{/* Email would be good here but we only have ID/Name in prop currently - assume UserOption might need role? */}
-                                                    Client User
-                                                </span>
-                                            </div>
+                                    </TabsContent>
+
+                                    {/* TAB: MANUAL ENTRY */}
+                                    <TabsContent value="manual" className="space-y-2">
+                                        <div className="flex flex-col space-y-2">
+                                            <Label htmlFor="clientName" className="text-xs text-muted-foreground">Enter name manually (No login access)</Label>
+                                            <Input
+                                                id="clientName"
+                                                placeholder="e.g. Mr. & Mrs. Smith"
+                                                value={formData.clientName}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, clientName: e.target.value, clientId: 'unassigned' }) // Clear user if manual typing
+                                                }}
+                                            />
+                                            {formData.clientName && (
+                                                <div className="p-3 bg-amber-50/50 border border-amber-100 rounded-md flex items-center gap-3">
+                                                    <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                                                        <Pencil className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-amber-900">{formData.clientName}</p>
+                                                        <p className="text-xs text-amber-700">Manual Record (Offline)</p>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                )}
+                                    </TabsContent>
+                                </Tabs>
+
+                                {/* Common Requirements Field */}
+                                <div className="pt-2">
+                                    <Label htmlFor="clientRequirements">Client Requirements / Notes</Label>
+                                    <Textarea
+                                        id="clientRequirements"
+                                        placeholder="Specific requests, color choices, contact preferences..."
+                                        className="h-20 mt-1 resize-none"
+                                        value={formData.clientRequirements}
+                                        onChange={(e) => setFormData({ ...formData, clientRequirements: e.target.value })}
+                                    />
+                                </div>
                             </div>
+
                         </div>
                     </div>
 

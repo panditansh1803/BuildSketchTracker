@@ -153,6 +153,7 @@ export function UserManagementPanel({ initialUsers, currentUser }: UserManagemen
                                             </Button>
                                         )}
 
+
                                         {canRemove(user) && (
                                             <Button
                                                 variant="ghost"
@@ -165,6 +166,35 @@ export function UserManagementPanel({ initialUsers, currentUser }: UserManagemen
                                                 <Trash2 className="h-4 w-4" />
                                             </Button>
                                         )}
+                                        {/* Client Toggle */}
+                                        {user.role !== 'ADMIN' && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className={user.role === 'CLIENT'
+                                                    ? "text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
+                                                    : "text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800"
+                                                }
+                                                onClick={async () => {
+                                                    setLoading(user.id)
+                                                    try {
+                                                        const { toggleClientRole } = await import('@/app/actions/team')
+                                                        const res = await toggleClientRole(user.id)
+                                                        setUsers(users.map(u => u.id === user.id ? { ...u, role: res.newRole } : u))
+                                                        router.refresh()
+                                                    } catch (e) {
+                                                        alert('Failed to update role')
+                                                    } finally {
+                                                        setLoading(null)
+                                                    }
+                                                }}
+                                                disabled={loading === user.id}
+                                                title={user.role === 'CLIENT' ? "Make Employee" : "Make Client"}
+                                            >
+                                                {user.role === 'CLIENT' ? <User className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                                            </Button>
+                                        )}
+
                                     </>
                                 )}
                             </div>

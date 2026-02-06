@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation'
 const navItems = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Projects', href: '/projects', icon: FolderOpen },
+    { name: 'Clients', href: '/clients', icon: Users },
     { name: 'Timeline', href: '/timeline', icon: CalendarClock },
     { name: 'Workflow', href: '/kanban', icon: KanbanSquare },
     { name: 'Project Map', href: '/map', icon: Map },

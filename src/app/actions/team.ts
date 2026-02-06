@@ -221,3 +221,42 @@ export async function removeUser(userId: string) {
         return { error: error.message || 'Failed to remove user' }
     }
 }
+
+/**
+ * Toggle a user's role between 'CLIENT' and 'PROJECT_OWNER' (Standard User).
+ * RESTRICTED: ADMIN ONLY
+ */
+export async function toggleClientRole(userId: string) {
+    const user = await getCurrentUser()
+    if (!user || user.role !== 'ADMIN') {
+        throw new Error('Unauthorized')
+    }
+
+    // Prevent self-change
+    if (userId === user.id) {
+        throw new Error('You cannot change your own role this way.')
+    }
+
+    const targetUser = await prisma.user.findUnique({ where: { id: userId } })
+    if (!targetUser) throw new Error('User not found')
+
+    // If currently CLIENT -> Make PROJECT_OWNER (Employee)
+    // If currently PROJECT_OWNER or ADMIN -> Make CLIENT (but warn if Admin?)
+    // Actually, let's strictly toggle: 
+    // If CLIENT -> PROJECT_OWNER
+    // Else -> CLIENT
+
+    // Safety: Don't accidentally demote another Admin without warning, but for this simple toggle let's assume UI handles safety checks or we fail if Admin.
+    if (targetUser.role === 'ADMIN') {
+        throw new Error('Cannot make an Admin a Client directly. Demote them first.')
+    }
+
+    const newRole = targetUser.role === 'CLIENT' ? 'PROJECT_OWNER' : 'CLIENT'
+
+    await prisma.user.update({
+        where: { id: userId },
+        data: { role: newRole }
+    })
+
+    return { success: true, newRole }
+}

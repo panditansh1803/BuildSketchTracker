@@ -57,6 +57,11 @@ model Project {
   clientId       String?
   client         User?     @relation("ClientProject", fields: [clientId], references: [id])
   additionalAssignees User[] @relation("AdditionalAssignees")
+  
+  // Manual Client Details (Additive)
+  clientName      String?
+  clientRequirements String?
+
 
   createdById    String
   createdBy      User      @relation("ProjectOwner", fields: [createdById], references: [id])
