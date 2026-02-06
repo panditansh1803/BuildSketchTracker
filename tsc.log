@@ -1,1 +1,0 @@
-﻿src/app/(dashboard)/projects/[id]/page.tsx(13,10): error TS2305: Module '"@/lib/brain"' has no exported member 'checkSlaCompliance'.
