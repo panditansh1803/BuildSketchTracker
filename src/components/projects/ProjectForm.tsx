@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -48,7 +49,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { updateProject } from '@/app/actions/projectActions'
 import { Pencil, AlertTriangle, Users, Calendar, MapPin, ChevronDown, Check, ChevronsUpDown, User, Lock, Clock } from 'lucide-react'
-import { STAGE_LISTS } from '@/lib/brain'
+import { STAGE_LISTS } from '@/lib/constants'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from "@/lib/utils"

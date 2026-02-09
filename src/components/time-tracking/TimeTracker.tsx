@@ -29,6 +29,24 @@ export function TimeTracker() {
     const [description, setDescription] = useState('')
     const [elapsed, setElapsed] = useState(0)
 
+    const loadSession = async () => {
+        try {
+            const session = await getActiveSession()
+            setActiveSession(session)
+        } catch (error) {
+            console.error('Failed to load session:', error)
+        }
+    }
+
+    const loadProjects = async () => {
+        try {
+            const data = await getProjectsForDropdown()
+            setProjects(data)
+        } catch (error) {
+            console.error('Failed to load projects:', error)
+        }
+    }
+
     useEffect(() => {
         loadSession()
         loadProjects()
@@ -49,24 +67,6 @@ export function TimeTracker() {
         }
         return () => clearInterval(timer)
     }, [activeSession])
-
-    const loadSession = async () => {
-        try {
-            const session = await getActiveSession()
-            setActiveSession(session)
-        } catch (error) {
-            console.error('Failed to load session:', error)
-        }
-    }
-
-    const loadProjects = async () => {
-        try {
-            const data = await getProjectsForDropdown()
-            setProjects(data)
-        } catch (error) {
-            console.error('Failed to load projects:', error)
-        }
-    }
 
     const handleClockIn = async () => {
         try {

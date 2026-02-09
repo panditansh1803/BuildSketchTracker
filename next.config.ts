@@ -3,12 +3,13 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // @ts-ignore
   eslint: {
-    ignoreDuringBuilds: true,
+    // ignoreDuringBuilds: true, // Re-enabling strict checks
   },
-  // @ts-ignore
   typescript: {
-    ignoreBuildErrors: true,
+    // ignoreBuildErrors: true, // Re-enabling strict checks
   },
+  compress: true, // Enable Gzip compression
+  swcMinify: true, // Use SWC for minification
   /* Performance Optimizations */
   logging: {
     fetches: {

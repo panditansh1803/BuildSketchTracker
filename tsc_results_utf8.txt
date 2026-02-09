@@ -1,0 +1,2 @@
+﻿src/components/projects/ProjectForm.tsx(123,5): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+verify-delay-bug.ts(54,84): error TS18046: 'e' is of type 'unknown'.

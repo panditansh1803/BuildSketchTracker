@@ -15,7 +15,7 @@ type Photo = {
     takenAt: Date
 }
 
-import { STAGE_LISTS } from '@/lib/brain'
+import { STAGE_LISTS } from '@/lib/constants'
 
 // ... existing imports
 

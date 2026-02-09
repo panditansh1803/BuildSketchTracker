@@ -3,7 +3,8 @@
 import prisma from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { updateProjectBrain, ProjectUpdateSchema } from '@/lib/brain'
+import { updateProjectBrain } from '@/lib/brain'
+import { ProjectUpdateSchema } from '@/lib/constants'
 import { Prisma } from '@prisma/client'
 import { deleteFile } from '@/lib/storage'
 import { getCurrentUser } from '@/lib/auth'
@@ -142,9 +143,14 @@ export async function updateProject(projectId: string, formData: FormData) {
 
 export async function deleteProject(projectId: string) {
     // ... existing delete logic ...
+    // ... existing delete logic ...
     console.log(`[DELETE] Attempting to delete: ${projectId}`)
-    const user = await prisma.user.findFirst()
-    if (!user) throw new Error('User not found')
+
+    // 1. Auth Check (STRICT CEO ONLY)
+    const user = await getCurrentUser()
+    if (!user || user.role !== 'ADMIN') {
+        throw new Error('Unauthorized: Only Admin/CEO can delete projects.')
+    }
 
     await prisma.$transaction(async (tx) => {
         // 1. Files handling (we do this outside tx usually but spec implies integrity)

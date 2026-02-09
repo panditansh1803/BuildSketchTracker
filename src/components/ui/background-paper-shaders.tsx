@@ -70,10 +70,15 @@ export function ShaderPlane({
         [color1, color2],
     )
 
+    // Use a ref to hold uniforms to avoid re-creation but allow mutation safely in useFrame if needed
+    // However, best practice in R3F is to mutate the material's uniforms directly via reference
     useFrame((state) => {
         if (mesh.current) {
-            uniforms.time.value = state.clock.elapsedTime
-            uniforms.intensity.value = 1.0 + Math.sin(state.clock.elapsedTime * 2) * 0.2
+            const material = mesh.current.material as THREE.ShaderMaterial
+            if (material.uniforms) {
+                material.uniforms.time.value = state.clock.elapsedTime
+                material.uniforms.intensity.value = 1.0 + Math.sin(state.clock.elapsedTime * 2) * 0.2
+            }
         }
     })
 

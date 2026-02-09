@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { updateProjectStage } from '@/app/actions/kanbanActions'
-import { STAGE_LISTS } from '@/lib/brain'
+import { STAGE_LISTS } from '@/lib/constants'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 

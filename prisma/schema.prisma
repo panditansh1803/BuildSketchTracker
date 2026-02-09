@@ -103,6 +103,8 @@ model Project {
   @@index([status])
   @@index([assignedToId])
   @@index([createdById])
+  @@index([clientId]) // Optimized for Client Dashboard
+  @@index([isDelayed]) // Optimized for SLA checks
 }
 
 model StageConfig {
@@ -122,6 +124,9 @@ model ProjectHistory {
   oldValue    String?
   newValue    String?
   createdAt   DateTime @default(now())
+
+  @@index([projectId])
+  @@index([createdAt]) // Optimized for History Histogram
 }
 
 // Retained for functionality (File Uploads)

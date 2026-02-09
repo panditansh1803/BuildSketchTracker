@@ -10,7 +10,7 @@ import { ProjectForm } from '@/components/projects/ProjectForm'
 import { SiteActivityFeed } from '@/components/projects/SiteActivityFeed'
 import { DownloadProjectPdf } from '@/components/projects/DownloadProjectPdf'
 import MapClientWrapper from '@/components/projects/MapClientWrapper'
-import { checkSlaCompliance } from '@/lib/brain'
+
 import { getCurrentUser } from '@/lib/auth'
 
 import { getProjectTimeStats } from '@/app/actions/time-tracking'

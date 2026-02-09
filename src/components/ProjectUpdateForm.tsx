@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useState } from 'react'
 
-import { STAGE_LISTS } from '@/lib/brain'
+import { STAGE_LISTS } from '@/lib/constants'
 
 export function ProjectUpdateForm({
     projectId,

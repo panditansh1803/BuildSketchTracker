@@ -26,7 +26,11 @@ function MapSearchControl({ projects }: { projects: ProjectLocation[] }) {
 
     // Filter projects based on query
     useEffect(() => {
+        // Debounce or valid check
         if (!query.trim()) {
+            // Cannot call setResults synchronously if this effect runs on every render without guard
+            // But here dependencies are [query]. logic is fine, but React strict mode might complain.
+            // Better to just clear it.
             setResults([])
             return
         }

@@ -7,19 +7,23 @@ type Stage = {
     status: 'completed' | 'current' | 'upcoming'
 }
 
-import { STAGE_LISTS } from '@/lib/brain'
+import { STAGE_LISTS } from '@/lib/constants'
 
 export function ProjectTimeline({ currentStage, houseType }: { currentStage: string, houseType: string }) {
     const stagesList = STAGE_LISTS[houseType as keyof typeof STAGE_LISTS] || STAGE_LISTS.Single
 
+    // Fix: Avoid mutation during render
     let foundCurrent = false
-    const stages: Stage[] = stagesList.map(name => {
+    const stages: Stage[] = []
+
+    for (const name of stagesList) {
         if (name === currentStage) {
             foundCurrent = true
-            return { name, percent: 0, status: 'current' }
+            stages.push({ name, percent: 0, status: 'current' })
+        } else {
+            stages.push({ name, percent: 0, status: foundCurrent ? 'upcoming' : 'completed' })
         }
-        return { name, percent: 0, status: foundCurrent ? 'upcoming' : 'completed' }
-    })
+    }
 
     return (
         <div className="space-y-6">

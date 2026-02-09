@@ -33,17 +33,6 @@ export function UserWorkLog() {
     const [filter, setFilter] = useState('')
     const [stats, setStats] = useState({ totalHours: 0, activeNow: 0, uniqueUsers: 0 })
 
-    useEffect(() => {
-        const fetchLogs = async () => {
-            const data = await getAllWorkLogs();
-            // Convert string dates back to Date objects if needed (server actions serialize dates)
-            // But Prisma usually handles this. Let's ensure types.
-            setLogs(data as any); // Casting for safety with serialized dates
-            calculateStats(data as any);
-        }
-        fetchLogs()
-    }, [])
-
     const calculateStats = (data: WorkLog[]) => {
         const totalMinutes = data.reduce((acc, log) => acc + (log.duration || 0), 0)
         const active = data.filter(l => !l.endTime).length
@@ -55,6 +44,17 @@ export function UserWorkLog() {
             uniqueUsers: unique
         })
     }
+
+    useEffect(() => {
+        const fetchLogs = async () => {
+            const data = await getAllWorkLogs();
+            // Convert string dates back to Date objects if needed (server actions serialize dates)
+            // But Prisma usually handles this. Let's ensure types.
+            setLogs(data as any); // Casting for safety with serialized dates
+            calculateStats(data as any);
+        }
+        fetchLogs()
+    }, [])
 
     const filteredLogs = logs.filter(log =>
         log.user.name.toLowerCase().includes(filter.toLowerCase()) ||
