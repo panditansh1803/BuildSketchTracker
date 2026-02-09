@@ -1,5 +1,7 @@
 'use server'
 
+import 'server-only'
+
 import prisma from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'

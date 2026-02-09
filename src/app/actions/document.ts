@@ -1,5 +1,7 @@
 'use server'
 
+import 'server-only'
+
 import prisma from '@/lib/prisma'
 import { saveFile, deleteFile } from '@/lib/storage'
 import { revalidatePath } from 'next/cache'

@@ -1,5 +1,7 @@
 'use server'
 
+import 'server-only'
+
 import prisma from '@/lib/prisma'
 import { updateProjectBrain } from '@/lib/brain'
 import { revalidatePath } from 'next/cache'

@@ -1,5 +1,7 @@
 'use server'
 
+import 'server-only'
+
 import prisma from '@/lib/prisma'
 import { calculateDelayDays } from '@/lib/utils'
 import { subDays, format } from 'date-fns'
