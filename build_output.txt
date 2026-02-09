@@ -1,0 +1,112 @@
+﻿node.exe : [baseline-
+browser-mapping] The 
+data in this module 
+is over two months 
+old.  To ensure 
+accurate Baseline 
+data, please update: 
+`npm i baseline-brows
+er-mapping@latest -D`
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: ([baseli   
+ ne-brows...ping@    
+latest -D`:Strin    
+g) [], RemoteExc    
+eption
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+ ΓÜá `eslint` 
+configuration in 
+next.config.ts is no 
+longer supported. 
+See more info here: h
+ttps://nextjs.org/doc
+s/app/api-reference/c
+li/next#next-lint-opt
+ions
+ ΓÜá Invalid 
+next.config.ts 
+options detected: 
+ ΓÜá     
+Unrecognized key(s) 
+in object: 'eslint'
+ ΓÜá See more info 
+here: https://nextjs.
+org/docs/messages/inv
+alid-next-config
+   Γû▓ Next.js 16.0.7 (Turbopack)
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     Γ£ô optimizeCss
+
+ ΓÜá The 
+"middleware" file 
+convention is 
+deprecated. Please 
+use "proxy" instead. 
+Learn more: https://n
+extjs.org/docs/messag
+es/middleware-to-prox
+y
+   Creating an optimized production build ...
+[baseline-browser-map
+ping] The data in 
+this module is over 
+two months old.  To 
+ensure accurate 
+Baseline data, 
+please update: `npm 
+i baseline-browser-ma
+pping@latest -D`
+ Γ£ô Compiled successfully in 7.6s
+   Running TypeScript ...
+Failed to compile.
+
+./next.config.ts:4:3
+Type error: Object 
+literal may only 
+specify known 
+properties, and 
+'eslint' does not 
+exist in type 
+'NextConfig'.
+
+[0m [90m 2 |[39m
+ [90m 3 |[39m 
+[36mconst[39m nextC
+onfig[33m:[39m 
+[33mNextConfig[39m 
+[33m=[39m {
+[31m[1m>[22m[39m
+[90m 4 |[39m   
+eslint[33m:[39m {
+ [90m   |[39m   
+[31m[1m^[22m[39m
+ [90m 5 |[39m     
+[90m// Ignore 
+ESLint errors during 
+builds (lint 
+warnings are 
+deferred)[39m
+ [90m 6 |[39m     i
+gnoreDuringBuilds[33
+m:[39m [36mtrue[39
+m[33m,[39m
+ [90m 7 |[39m   
+}[33m,[39m[0m
+Next.js build worker 
+exited with code: 1 
+and signal: null
