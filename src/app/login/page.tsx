@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useRouter } from 'next/navigation'
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
-import AnoAI from '@/components/ui/animated-shader-background'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
@@ -68,11 +67,10 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden bg-black font-sans selection:bg-white/20">
-            {/* Animated Background */}
-            <div className="absolute inset-0 z-0">
-                <AnoAI />
-            </div>
+        <div className="relative min-h-screen w-full overflow-hidden bg-zinc-900 font-sans selection:bg-white/20">
+            {/* Simple Grey Background */}
+            <div className="absolute inset-0 z-0 bg-zinc-900" />
+
 
             {/* Content Container */}
             <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
