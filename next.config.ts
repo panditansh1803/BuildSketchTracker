@@ -1,15 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // @ts-ignore
-  eslint: {
-    // ignoreDuringBuilds: true, // Re-enabling strict checks
-  },
-  typescript: {
-    // ignoreBuildErrors: true, // Re-enabling strict checks
-  },
+  // eslint: {
+  //   ignoreDuringBuilds: true,
+  // },
+  // typescript: {
+  //   ignoreBuildErrors: true,
+  // },
   compress: true, // Enable Gzip compression
-  swcMinify: true, // Use SWC for minification
+  // swcMinify: true, // DEPRECATED in Next.js 15+ (Default is true)
   /* Performance Optimizations */
   logging: {
     fetches: {

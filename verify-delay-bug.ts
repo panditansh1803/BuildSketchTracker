@@ -49,9 +49,9 @@ async function testDelayLogic() {
         console.log(result)
         require('fs').writeFileSync('verify-result.txt', result)
 
-    } catch (e) {
+    } catch (e: any) {
         console.error("Brain Update Failed:", e)
-        require('fs').writeFileSync('verify-result.txt', "Brain Update Failed: " + e.toString())
+        require('fs').writeFileSync('verify-result.txt', "Brain Update Failed: " + (e?.toString() || 'Unknown Error'))
     }
 
     // Cleanup
