@@ -89,8 +89,8 @@ export function GanttChart({ projects }: GanttChartProps) {
                             const end = project.actualFinish || project.targetFinish
 
                             // Clip to view
-                            let visibleStart = start < viewStartDate ? viewStartDate : start
-                            let visibleEnd = end > viewEndDate ? viewEndDate : end
+                            const visibleStart = start < viewStartDate ? viewStartDate : start
+                            const visibleEnd = end > viewEndDate ? viewEndDate : end
 
                             // If completely out of view
                             if (end < viewStartDate || start > viewEndDate) {

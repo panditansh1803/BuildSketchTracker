@@ -1,4 +1,7 @@
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Topbar } from '@/components/layout/Topbar';
+import { getCurrentUser } from '@/lib/auth';
 
 export default async function DashboardLayout({
     children,

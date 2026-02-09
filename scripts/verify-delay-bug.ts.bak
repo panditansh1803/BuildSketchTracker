@@ -1,5 +1,5 @@
-const prisma = require('./src/lib/prisma').default
-const { updateProjectBrain } = require('./src/lib/brain')
+const prisma = require('../src/lib/prisma').default
+const { updateProjectBrain } = require('../src/lib/brain')
 
 async function testDelayLogic() {
     console.log("1. Creating Test Project...")

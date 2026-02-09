@@ -113,7 +113,7 @@ const AnoAI = () => {
     scene.add(mesh);
 
     let frameId: number;
-    let lastTime = 0;
+    const lastTime = 0;
 
     // Performance: Throttle frame rate if needed, but for smooth shaders, vSync is usually enough.
     // relying on requestAnimationFrame for vSync.

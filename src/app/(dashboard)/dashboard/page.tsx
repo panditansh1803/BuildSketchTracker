@@ -1,4 +1,5 @@
 import { getCurrentUser } from '@/lib/auth'
+import prisma from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { Suspense } from 'react'
 import StatsWrapper from '@/components/dashboard/server/StatsWrapper'

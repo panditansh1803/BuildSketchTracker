@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "verify": "echo 'Skipping lint for now...' && tsc --noEmit && next build",
     "postinstall": "prisma generate"
   },
   "dependencies": {

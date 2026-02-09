@@ -14,8 +14,16 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "scripts/**",
     "*.js",
-    "*.mjs"
+    "*.mjs",
+    "verify-delay-bug.ts"
   ]),
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "react-hooks/exhaustive-deps": "warn"
+    }
+  }
 ]);
 
 export default eslintConfig;

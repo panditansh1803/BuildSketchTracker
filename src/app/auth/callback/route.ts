@@ -96,7 +96,7 @@ export async function GET(request: Request) {
         console.error('Auth Exchange Error:', exchangeError.message)
 
         let errorType = 'exchange_failed'
-        let errorMessage = encodeURIComponent(exchangeError.message)
+        const errorMessage = encodeURIComponent(exchangeError.message)
 
         if (exchangeError.message?.includes('code verifier')) {
             // PKCE error - user might be on different browser OR server couldn't access cookie.
