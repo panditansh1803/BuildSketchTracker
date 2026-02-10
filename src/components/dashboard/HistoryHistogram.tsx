@@ -18,7 +18,7 @@ export function HistoryHistogram({ data }: HistoryHistogramProps) {
                 <div className="h-[250px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
                             <XAxis
                                 dataKey="date"
                                 fontSize={10}
@@ -32,8 +32,9 @@ export function HistoryHistogram({ data }: HistoryHistogramProps) {
                                 allowDecimals={false}
                             />
                             <Tooltip
-                                cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                contentStyle={{ backgroundColor: '#1c1c1c', color: '#fff', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
+                                labelStyle={{ color: '#a1a1aa' }}
                             />
                             <Bar
                                 dataKey="count"

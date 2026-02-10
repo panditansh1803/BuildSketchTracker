@@ -46,8 +46,9 @@ export function StageDistributionChart({ data }: { data: StageData[] }) {
                                 tickFormatter={(value) => `${value}`}
                             />
                             <Tooltip
-                                cursor={{ fill: 'transparent' }}
-                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                contentStyle={{ backgroundColor: '#1c1c1c', color: '#fff', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
+                                labelStyle={{ color: '#a1a1aa' }}
                             />
                             <Bar
                                 dataKey="count"
