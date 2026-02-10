@@ -4,8 +4,8 @@ import { uploadPhoto, deletePhoto } from '@/app/actions/photo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useState } from 'react'
-import { Trash2, Image as ImageIcon } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Trash2, Image as ImageIcon, Loader2 } from 'lucide-react'
 
 type Photo = {
     id: string
@@ -17,16 +17,26 @@ type Photo = {
 
 import { STAGE_LISTS } from '@/lib/constants'
 
-// ... existing imports
-
 export function PhotoGallery({ projectId, photos, houseType }: { projectId: string, photos: Photo[], houseType: string }) {
     const [uploading, setUploading] = useState(false)
     const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+    const formRef = useRef<HTMLFormElement>(null)
 
     // Dynamic from Brain
     const stages = STAGE_LISTS[houseType as keyof typeof STAGE_LISTS] || STAGE_LISTS.Single
 
-    async function handleUpload(formData: FormData) {
+    async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        const form = e.currentTarget
+        const formData = new FormData(form)
+
+        // Client-side validation
+        const file = formData.get('file') as File
+        if (!file || file.size === 0) {
+            setStatus({ type: 'error', message: 'Please select a photo first.' })
+            return
+        }
+
         setUploading(true)
         setStatus(null)
         try {
@@ -35,8 +45,7 @@ export function PhotoGallery({ projectId, photos, houseType }: { projectId: stri
                 setStatus({ type: 'error', message: result.error })
             } else {
                 setStatus({ type: 'success', message: 'Photo uploaded successfully!' })
-                // Optional: Reload page or reset form if simple
-                // window.location.reload() // Or rely on revalidatePath
+                form.reset()
             }
         } catch (e) {
             setStatus({ type: 'error', message: 'An unexpected error occurred.' })
@@ -49,9 +58,8 @@ export function PhotoGallery({ projectId, photos, houseType }: { projectId: stri
         <div className="space-y-6">
             <div className="bg-muted/50 p-4 rounded-lg border">
                 <h3 className="font-medium mb-4">Upload Site Photo</h3>
-                <form action={handleUpload} className="flex gap-4 items-end flex-wrap">
+                <form ref={formRef} onSubmit={handleUpload} className="flex gap-4 items-end flex-wrap">
                     <input type="hidden" name="projectId" value={projectId} />
-                    {/* ... (inputs) ... */}
 
                     <div className="flex-1 min-w-[200px] space-y-2">
                         <Input type="file" name="file" accept="image/*" />
@@ -72,7 +80,7 @@ export function PhotoGallery({ projectId, photos, houseType }: { projectId: stri
                         <Input name="caption" placeholder="Caption (optional)" />
                     </div>
                     <Button type="submit" disabled={uploading}>
-                        {uploading ? 'Uploading...' : 'Upload'}
+                        {uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Uploading...</> : 'Upload'}
                     </Button>
                 </form>
                 {status && (

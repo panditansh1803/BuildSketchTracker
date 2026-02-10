@@ -4,8 +4,8 @@ import { uploadDocument, deleteDocument } from '@/app/actions/document'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useState } from 'react'
-import { FileText, Trash2, Download, Eye, Image as ImageIcon } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { FileText, Trash2, Download, Eye, Image as ImageIcon, Loader2 } from 'lucide-react'
 
 type Document = {
     id: string
@@ -17,8 +17,20 @@ type Document = {
 
 export function DocumentList({ projectId, documents }: { projectId: string, documents: Document[] }) {
     const [uploading, setUploading] = useState(false)
+    const formRef = useRef<HTMLFormElement>(null)
 
-    async function handleUpload(formData: FormData) {
+    async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        const form = e.currentTarget
+        const formData = new FormData(form)
+
+        // Client-side validation
+        const file = formData.get('file') as File
+        if (!file || file.size === 0) {
+            alert('Please select a file first.')
+            return
+        }
+
         setUploading(true)
         try {
             const result = (await uploadDocument(formData)) as any
@@ -26,6 +38,7 @@ export function DocumentList({ projectId, documents }: { projectId: string, docu
                 alert(`Error: ${result.error}`)
             } else {
                 alert('Document uploaded successfully!')
+                form.reset()
             }
         } catch (error: any) {
             console.error('Upload failed:', error)
@@ -43,10 +56,9 @@ export function DocumentList({ projectId, documents }: { projectId: string, docu
         <div className="space-y-6">
             <div className="bg-muted/50 p-4 rounded-lg border">
                 <h3 className="font-medium mb-4">Upload New Document</h3>
-                <form action={handleUpload} className="flex gap-4 items-end flex-wrap">
+                <form ref={formRef} onSubmit={handleUpload} className="flex gap-4 items-end flex-wrap">
                     <input type="hidden" name="projectId" value={projectId} />
                     <div className="flex-1 min-w-[200px] space-y-2">
-                        {/* Ensure input is clearly clickable and not hidden */}
                         <Input
                             type="file"
                             name="file"
@@ -68,7 +80,7 @@ export function DocumentList({ projectId, documents }: { projectId: string, docu
                         </Select>
                     </div>
                     <Button type="submit" disabled={uploading}>
-                        {uploading ? 'Uploading...' : 'Upload'}
+                        {uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Uploading...</> : 'Upload'}
                     </Button>
                 </form>
             </div>
@@ -84,7 +96,6 @@ export function DocumentList({ projectId, documents }: { projectId: string, docu
                                 {isImage(doc.name) ? (
                                     <div className="relative">
                                         <ImageIcon className="h-6 w-6 text-primary" />
-                                        {/* Hover Preview could go here, but let's keep it simple with consistent UI */}
                                     </div>
                                 ) : (
                                     <FileText className="h-6 w-6 text-primary" />
