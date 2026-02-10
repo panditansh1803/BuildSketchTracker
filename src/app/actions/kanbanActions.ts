@@ -2,13 +2,13 @@
 
 import 'server-only'
 
-import prisma from '@/lib/prisma'
 import { updateProjectBrain } from '@/lib/brain'
 import { revalidatePath } from 'next/cache'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function updateProjectStage(projectId: string, newStage: string) {
-    const user = await prisma.user.findFirst()
-    if (!user) throw new Error('User not found')
+    const user = await getCurrentUser()
+    if (!user) throw new Error('Unauthorized')
 
     // We use the central brain logic to ensure all automation (percent updates, history) runs
     await updateProjectBrain(projectId, { stage: newStage }, user.id, user.name)

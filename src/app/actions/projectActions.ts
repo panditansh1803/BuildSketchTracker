@@ -144,8 +144,6 @@ export async function updateProject(projectId: string, formData: FormData) {
 }
 
 export async function deleteProject(projectId: string) {
-    // ... existing delete logic ...
-    // ... existing delete logic ...
     console.log(`[DELETE] Attempting to delete: ${projectId}`)
 
     // 1. Auth Check (STRICT CEO ONLY)
@@ -154,27 +152,22 @@ export async function deleteProject(projectId: string) {
         throw new Error('Unauthorized: Only Admin/CEO can delete projects.')
     }
 
+    // Fetch file URLs BEFORE deleting from DB
+    const docs = await prisma.document.findMany({ where: { projectId }, select: { url: true } })
+    const photos = await prisma.sitePhoto.findMany({ where: { projectId }, select: { url: true } })
+
     await prisma.$transaction(async (tx) => {
-        // 1. Files handling (we do this outside tx usually but spec implies integrity)
-        // Actually file deletion is side effect. do it safely.
-        const docs = await tx.document.findMany({ where: { projectId } })
-        const photos = await tx.sitePhoto.findMany({ where: { projectId } })
-
-        // Fire and forget file delete or await? 
-        // For strict data integrity, if DB delete fails, files stay. If files fail, maybe DB stays?
-        // Spec doesn't detail delete strictness, but we keep "Surgical Fix" logic.
-
         await tx.projectHistory.deleteMany({ where: { projectId } })
         await tx.document.deleteMany({ where: { projectId } })
         await tx.sitePhoto.deleteMany({ where: { projectId } })
         await tx.project.delete({ where: { id: projectId } })
     })
 
-    // Delete files after successful DB transaction (safe approach)
-    // In real app, we queue this. Here we just try.
-    // fetch again? No, we need data.
-    // Reverting to previous logic for file delete to be safe, but wrapped in function
+    // Delete files from Supabase storage AFTER successful DB transaction
+    const fileUrls = [...docs.map(d => d.url), ...photos.map(p => p.url)]
+    await Promise.allSettled(fileUrls.map(url => deleteFile(url)))
 
     revalidatePath('/dashboard')
     revalidatePath('/projects')
 }
+
