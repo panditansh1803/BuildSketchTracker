@@ -230,7 +230,7 @@ export function ProjectForm({
                     Edit Project
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-slate-50 dark:bg-zinc-950 border-slate-200 dark:border-zinc-800">
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto bg-zinc-950 border-zinc-800">
                 <DialogHeader>
                     <DialogTitle>Edit Project Details</DialogTitle>
                     <DialogDescription>
@@ -475,7 +475,7 @@ export function ProjectForm({
                                 </div>
                             ) : (
                                 // NON-ADMIN VIEW (MASKED)
-                                <div className="col-span-2 space-y-2 p-3 bg-slate-100 dark:bg-slate-900 rounded border">
+                                <div className="col-span-2 space-y-2 p-3 bg-zinc-900 rounded border">
                                     <div className="flex items-center gap-2">
                                         <Lock className="h-4 w-4 text-muted-foreground" />
                                         <h4 className="font-semibold text-sm">Client Information (Confidential)</h4>
@@ -499,8 +499,8 @@ export function ProjectForm({
                             <div className="space-y-3">
                                 {/* DYNAMIC SCHEDULING (CEO) */}
                                 {isAdmin && (
-                                    <div className="space-y-1 p-2 bg-blue-50 border border-blue-200 rounded">
-                                        <Label className="text-xs font-semibold text-blue-900 flex items-center gap-1">
+                                    <div className="space-y-1 p-2 bg-blue-950/50 border border-blue-800 rounded">
+                                        <Label className="text-xs font-semibold text-blue-300 flex items-center gap-1">
                                             <Clock className="w-3 h-3" /> Client Delay (Days)
                                         </Label>
                                         <Input
@@ -542,10 +542,10 @@ export function ProjectForm({
                                                     })
                                                 }
                                             }}
-                                            className="bg-white"
+                                            className="bg-zinc-900"
                                             placeholder="0"
                                         />
-                                        <p className="text-[10px] text-blue-700">Changing this Auto-Shifts Target Date (Delta: {parseInt(formData.clientDelayDays || '0') - (project.clientDelayDays || 0)} days).</p>
+                                        <p className="text-[10px] text-blue-400">Changing this Auto-Shifts Target Date (Delta: {parseInt(formData.clientDelayDays || '0') - (project.clientDelayDays || 0)} days).</p>
                                     </div>
                                 )}
 
@@ -621,8 +621,8 @@ export function ProjectForm({
                         </div>
 
                         {(project.isDelayed || formData.status === 'Completed') && (
-                            <div className="space-y-2 p-4 bg-amber-50/50 border border-amber-200/50 rounded-lg">
-                                <div className="flex items-center gap-2 text-amber-800 mb-2">
+                            <div className="space-y-2 p-4 bg-amber-950/30 border border-amber-800/50 rounded-lg">
+                                <div className="flex items-center gap-2 text-amber-400 mb-2">
                                     <AlertTriangle className="h-4 w-4" />
                                     <Label htmlFor="delayReason" className="font-semibold cursor-pointer">
                                         Reason for Delay {project.isDelayed && '*'}
@@ -633,7 +633,7 @@ export function ProjectForm({
                                     value={formData.delayReason}
                                     onChange={(e) => setFormData({ ...formData, delayReason: e.target.value })}
                                     placeholder={project.isDelayed ? "Required: Explanation for the delay..." : "Optional reason..."}
-                                    className="bg-white"
+                                    className="bg-zinc-900"
                                     required={project.isDelayed && formData.status === 'Completed'}
                                 />
                             </div>
