@@ -48,10 +48,10 @@ export async function getDashboardStats(userId: string, userRole: string) {
     const pieData = Array.from(pieMap.entries()).map(([name, value]) => ({
         name,
         value,
-        color: name === 'On Track' ? '#10b981' :
-            name === 'Client Delay' ? '#f59e0b' :
-                name === 'Past Target' ? '#ef4444' :
-                    '#3b82f6'
+        color: name === 'On Track' ? 'oklch(0.6 0.15 150)' : // Greenish
+            name === 'Client Delay' ? 'oklch(0.7 0.15 80)' : // Orange/Yellow
+                name === 'Past Target' ? 'oklch(0.5 0.15 20)' : // Red
+                    'oklch(0.6 0.15 250)' // Blue (Primary)
     }))
 
     // Histogram Data

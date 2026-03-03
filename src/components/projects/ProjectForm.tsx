@@ -1,7 +1,6 @@
 'use client'
 
-import React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -121,7 +120,7 @@ export function ProjectForm({
     })
 
     // Sync state with props when project updates (essential for server action refreshes)
-    React.useEffect(() => {
+    useEffect(() => {
         setFormData({
             projectId: project.projectId,
             name: project.name,

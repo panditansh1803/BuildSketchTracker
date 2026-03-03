@@ -29,7 +29,7 @@ export async function checkSlaCompliance(projectId: string) {
         // Rule A: 24-Hour Monitor (Initial Delay Flag)
         if (diffHours > 24) {
             let needsUpdate = false
-            const updates: any = {}
+            const updates: Record<string, any> = {}
 
             if (!project.isDelayed) {
                 updates.isDelayed = true
@@ -361,6 +361,11 @@ export async function updateProjectBrain(projectId: string, rawData: ProjectUpda
 }
 
 // Helper for Dashboard (Exported)
-export function getPercentComplete(houseType: string, stage: string): number {
-    return 0
+export async function getPercentComplete(houseType: string, stage: string): Promise<number> {
+    const config = await prisma.stageConfig.findUnique({
+        where: {
+            houseType_stageName: { houseType, stageName: stage }
+        }
+    })
+    return config?.percent ?? 0
 }
